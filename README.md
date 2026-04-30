@@ -27,13 +27,15 @@ El proyecto se trabaja por fases segun `docs/plan.md`. No se debe avanzar a una 
 
 ## Levantar Servicios
 
-Todavia no hay servicios inicializados. La siguiente tarea es la Fase 0.2: crear `docker-compose.yml` con MySQL 8, Redis 7 y Adminer, junto con `.env.example`.
+La infraestructura base usa PostgreSQL 16, Redis 7 y Adminer. Copia `.env.example` a `.env` para levantar los servicios en desarrollo local.
 
 Cuando la infraestructura base exista, el flujo esperado sera:
 
 ```bash
 docker compose up
 ```
+
+Adminer queda disponible en `http://localhost:18080`.
 
 ## Reglas Importantes
 

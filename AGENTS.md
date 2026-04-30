@@ -57,7 +57,7 @@ agencia-viajes/
 
 | Capa | Tecnología |
 | --- | --- |
-| Backend | Go 1.22+, Fiber v2, GORM, MySQL 8, Redis 7 |
+| Backend | Go 1.22+, Fiber v2, GORM, PostgreSQL 16, Redis 7 |
 | Frontend | Astro 4+, Tailwind CSS, TypeScript |
 | RAG | Python 3.11+, LlamaIndex, ChromaDB, Ollama |
 | Infra | Docker, Docker Compose, Nginx, n8n |
@@ -70,10 +70,15 @@ agencia-viajes/
 
 ### Git
 
-- Hacer commit al cerrar cada sub-tarea del plan
+- Generar un mensaje de commit al cerrar cada sub-tarea del plan, **pero no ejecutar el commit**
+- Guardar el mensaje generado en un archivo específico (por ejemplo: `./.git-commits.log` o `./commit_messages.txt`)
 - Formato de commit: `tipo(módulo): descripción corta`
+
   - Tipos: `feat`, `fix`, `refactor`, `docs`, `test`, `infra`, `chore`
-  - Ejemplos: `feat(backend): agregar endpoint POST /viajes`, `fix(rag): corregir identificación de cliente por WhatsApp`
+  - Ejemplos:
+
+    - `feat(backend): agregar endpoint POST /viajes`
+    - `fix(rag): corregir identificación de cliente por WhatsApp`
 - Nunca hacer commit de archivos `.env` ni credenciales
 - El archivo `.env.example` siempre debe estar actualizado con todas las variables (sin valores reales)
 

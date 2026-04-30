@@ -58,14 +58,16 @@ travel-agency/
 
 ### 0.2 Docker Compose base
 
-- [ ] `docker-compose.yml` con los servicios base:
-  - MySQL 8
+- [x] `docker-compose.yml` con los servicios base:
+  - PostgreSQL 16
   - Redis 7
   - Adminer (cliente visual de BD, solo dev)
-- [ ] Variables de entorno en `.env` (nunca en el compose directamente)
-- [ ] Verificar que los tres servicios levantan con `docker compose up`
+- [x] Variables de entorno en `.env` (nunca en el compose directamente)
+- [x] Verificar que los tres servicios levantan con `docker compose up`
 
-**Done cuando:** MySQL acepta conexiones, Redis responde a `PING`, Adminer abre en el browser.
+> Verificado localmente: PostgreSQL acepta conexiones, Redis responde `PING` y Adminer abre en `http://localhost:18080`.
+
+**Done cuando:** PostgreSQL acepta conexiones, Redis responde a `PING`, Adminer abre en el browser.
 
 ### 0.3 Docker Compose — Observabilidad
 
@@ -109,15 +111,15 @@ travel-agency/
 - [ ] Incluir índices para las consultas más frecuentes
 - [ ] Incluir datos semilla (`002_seed.sql`): un admin, un agente, 2-3 viajes de prueba
 
-**Done cuando:** el script corre sin errores en el MySQL del compose y las tablas existen con los datos semilla.
+**Done cuando:** el script corre sin errores en el PostgreSQL del compose y las tablas existen con los datos semilla.
 
 ### 1.3 Configurar GORM en el backend
 
-- [ ] Instalar dependencias: `gorm.io/gorm`, `gorm.io/driver/mysql`
+- [ ] Instalar dependencias: `gorm.io/gorm`, `gorm.io/driver/postgres`
 - [ ] Crear structs Go que mapeen cada tabla
 - [ ] Verificar conexión y que GORM puede hacer un SELECT básico
 
-**Done cuando:** el backend arranca, conecta a MySQL y loguea "DB connected" sin errores.
+**Done cuando:** el backend arranca, conecta a PostgreSQL y loguea "DB connected" sin errores.
 
 ---
 
@@ -333,7 +335,7 @@ travel-agency/
 
 ### 6.3 Operación
 
-- [ ] Backup automático diario de MySQL a storage externo (S3 / Cloudflare R2)
+- [ ] Backup automático diario de PostgreSQL a storage externo (S3 / Cloudflare R2)
 - [ ] Alertas en Grafana para: CPU > 80%, errores 5xx, RAG latencia > 10s
 - [ ] Verificar Uptime Kuma monitorea todos los servicios públicos
 - [ ] Runbook básico: qué hacer si cae cada servicio

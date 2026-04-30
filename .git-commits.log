@@ -1,0 +1,12 @@
+/*
+COMMIT EXAMPLE:
+---
+FEAT(docker-compose.yml): We make a docker file, this file are maked because
+the app moust be runnable in any cloud or local server, then this is a mous
+popular and escalabe solution..
+
+REFACT(docs): The documen tation are upgrade, this because for new desing requirement
+are chose change the database engine to PostgreSql.
+---
+All commits, need an explanation with justification, should be he writing in English and Spanish.
+*/

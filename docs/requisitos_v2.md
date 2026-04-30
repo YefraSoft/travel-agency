@@ -200,7 +200,7 @@ Sistema de gestión para agencia de viajes que opera con paquetes todo incluido,
 |---|---|
 | Frontend | Astro (SSG/SSR) |
 | Backend | Go + Fiber |
-| Base de datos | MySQL con GORM |
+| Base de datos | PostgreSQL con GORM |
 | Cache / Colas | Redis |
 | RAG | LlamaIndex + ChromaDB + Ollama |
 | Automatización | n8n |
