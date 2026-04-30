@@ -37,6 +37,28 @@ docker compose up
 
 Adminer queda disponible en `http://localhost:18080`.
 
+Servicios de observabilidad:
+
+- Prometheus: `http://localhost:9090`
+- Grafana: `http://localhost:3000`
+- Loki: `http://localhost:3100`
+- Uptime Kuma: `http://localhost:3001`
+
+Credenciales locales de Grafana se definen en `.env` usando `GRAFANA_ADMIN_USER` y `GRAFANA_ADMIN_PASSWORD`.
+
+## Proyectos
+
+- Backend: modulo Go en `backend/`, verificable con `go test ./...` y `go run ./cmd/api`.
+- Frontend: proyecto Astro en `frontend/`, verificable con `npm run build`.
+- RAG: entorno virtual Python en `rag/.venv`.
+- Ollama: instalado en Windows; validado contra `http://localhost:11434` desde PowerShell.
+
+Si Go no esta en el `PATH` de WSL, agrega temporalmente el binario local instalado:
+
+```bash
+export PATH="$HOME/.local/go/bin:$PATH"
+```
+
 ## Reglas Importantes
 
 - No commitear `.env` ni credenciales.

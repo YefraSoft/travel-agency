@@ -10,3 +10,11 @@ are chose change the database engine to PostgreSql.
 ---
 All commits, need an explanation with justification, should be he writing in English and Spanish.
 */
+
+INFRA(observability): Add Prometheus, Grafana, Loki and Uptime Kuma to the local compose stack.
+EN: This change gives the project a local observability baseline before business services are implemented.
+ES: Este cambio da al proyecto una base local de observabilidad antes de implementar servicios de negocio.
+
+CHORE(projects): Initialize backend, frontend and RAG base projects.
+EN: This change makes each application folder runnable or buildable in an empty baseline state for the next development phases.
+ES: Este cambio deja cada carpeta de aplicacion ejecutable o compilable en un estado base para las siguientes fases de desarrollo.

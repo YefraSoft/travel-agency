@@ -71,21 +71,25 @@ travel-agency/
 
 ### 0.3 Docker Compose — Observabilidad
 
-- [ ] Agregar al compose:
+- [x] Agregar al compose:
   - Prometheus
   - Grafana
   - Loki
   - Uptime Kuma
-- [ ] Configurar datasources de Grafana (Prometheus + Loki) vía provisioning
+- [x] Configurar datasources de Grafana (Prometheus + Loki) vía provisioning
+
+> Verificado localmente: Prometheus abre en `http://localhost:9090`, Grafana responde en `http://localhost:3000`, Loki responde `ready` en `http://localhost:3100/ready` y Uptime Kuma abre en `http://localhost:3001`.
 
 **Done cuando:** Grafana abre, muestra Prometheus y Loki como datasources activos.
 
 ### 0.4 Inicializar proyectos
 
-- [ ] `go mod init` en `/backend`
-- [ ] `npm create astro@latest` en `/frontend`
-- [ ] `python -m venv .venv` en `/rag`
-- [ ] Instalar Ollama localmente y hacer `ollama pull` del modelo elegido
+- [x] `go mod init` en `/backend`
+- [x] `npm create astro@latest` en `/frontend`
+- [x] `python -m venv .venv` en `/rag`
+- [x] Instalar Ollama localmente y hacer `ollama pull` del modelo elegido
+
+> Verificado localmente: backend Go compila y arranca en modo mínimo, frontend Astro compila con `npm run build`, RAG tiene `.venv` creado y Ollama responde desde Windows con modelos disponibles.
 
 **Done cuando:** cada proyecto compila/arranca sin errores en modo vacío.
 
