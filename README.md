@@ -66,3 +66,38 @@ export PATH="$HOME/.local/go/bin:$PATH"
 - No modificar migraciones SQL ya ejecutadas; crear una nueva migracion numerada.
 - Mantener la logica de negocio fuera de handlers.
 - El RAG no procesa pagos; siempre escala al agente humano.
+
+## Demo Temporal RAG
+
+Entregable de emergencia para probar el alcance del asistente conversacional antes de continuar con el plan completo.
+
+Servicios del demo:
+
+- Chat web: `http://127.0.0.1:4321/temp/chat`
+- API RAG: `http://127.0.0.1:5000`
+- Health RAG: `http://127.0.0.1:8001/health`
+
+Ejecutar RAG:
+
+```bash
+cd rag
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --host 127.0.0.1 --port 5000 --reload
+```
+
+Reindexar conocimiento demo:
+
+```bash
+curl -X POST http://127.0.0.1:8001/reindex
+```
+
+Ejecutar frontend:
+
+```bash
+cd frontend
+npm install
+npm run dev -- --host 127.0.0.1 --port 4321
+```
+
+El demo usa datos ficticios en `rag/data/knowledge/` y Ollama local en Windows. Si WSL no puede conectar directamente a `localhost:11434`, el servicio RAG usa PowerShell como fallback para consultar Ollama.

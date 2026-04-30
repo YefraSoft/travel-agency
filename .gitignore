@@ -38,6 +38,7 @@ __pycache__/
 *.py[cod]
 .venv/
 venv/
+rag/storage/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
@@ -51,6 +52,9 @@ build/
 # Docker / local data
 docker-data/
 data/
+!rag/data/
+!rag/data/knowledge/
+!rag/data/knowledge/*.md
 uploads/
 
 # Secrets / credentials

@@ -1,0 +1,20 @@
+---
+import TempRagChat from '../../components/TempRagChat.jsx';
+
+const ragApiUrl = import.meta.env.PUBLIC_RAG_API_URL ?? 'http://localhost:5000';
+---
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Demo RAG | Agencia de Viajes</title>
+    <meta
+      name="description"
+      content="Chat temporal para probar el asistente RAG de la agencia de viajes."
+    />
+  </head>
+  <body>
+    <TempRagChat client:load ragApiUrl={ragApiUrl} />
+  </body>
+</html>

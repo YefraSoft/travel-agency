@@ -18,3 +18,15 @@ ES: Este cambio da al proyecto una base local de observabilidad antes de impleme
 CHORE(projects): Initialize backend, frontend and RAG base projects.
 EN: This change makes each application folder runnable or buildable in an empty baseline state for the next development phases.
 ES: Este cambio deja cada carpeta de aplicacion ejecutable o compilable en un estado base para las siguientes fases de desarrollo.
+
+---
+
+FEAT(rag): Add emergency RAG demo service with local demo knowledge.
+EN: This change allows the client to test a working assistant before the full backend and database phases are complete, using Ollama models and a lightweight local vector index.
+ES: Este cambio permite que el cliente pruebe un asistente funcional antes de completar las fases de backend y base de datos, usando modelos de Ollama y un indice vectorial local ligero.
+
+FEAT(frontend): Add temporary React chat route for the RAG demo.
+EN: This change provides a polished client-facing chat at /temp/chat so the RAG can be evaluated quickly from the browser.
+ES: Este cambio agrega un chat presentable para cliente en /temp/chat para evaluar rapidamente el RAG desde el navegador.
+
+---
