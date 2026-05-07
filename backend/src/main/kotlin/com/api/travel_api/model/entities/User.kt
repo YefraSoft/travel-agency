@@ -1,10 +1,10 @@
 package com.api.travel_api.model.entities
 
 import com.api.travel_api.model.enums.UserRole
+import com.api.travel_api.model.enums.UserRoleConverter
 import jakarta.persistence.Column
+import jakarta.persistence.Convert
 import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
@@ -17,7 +17,7 @@ data class User(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
+    val id: Int? = null,
 
     @Column(name = "name", nullable = false, length = 100)
     var name: String,
@@ -28,7 +28,7 @@ data class User(
     @Column(name = "password", nullable = false, length = 255)
     var password: String,
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = UserRoleConverter::class)
     @Column(name = "rol", nullable = false)
     var role: UserRole,
 
