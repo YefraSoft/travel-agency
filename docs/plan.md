@@ -219,9 +219,9 @@ travel-agency/
 
 ### 3.1 Setup del entorno RAG
 
-- [ ] Instalar dependencias: `llama-index`, `chromadb`, `langchain` (según decisión final)
+- [ ] Instalar dependencias: `llama-index`, `chromadb`, `langchain`
 - [ ] Agregar Ollama y ChromaDB al `docker-compose.yml`
-- [ ] Elegir y descargar modelo base (recomendado: `llama3` o `mistral`)
+- [ ] Elegir y descargar modelo base `gemma3`
 - [ ] Verificar inferencia local con un prompt simple
 
 **Done cuando:** una llamada a Ollama desde Python retorna una respuesta coherente.

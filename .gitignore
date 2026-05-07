@@ -20,6 +20,7 @@ logs/
 bin/
 tmp/
 *.test
+.cache
 coverage.out
 
 # Node / Astro

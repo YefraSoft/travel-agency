@@ -30,3 +30,7 @@ EN: This change provides a polished client-facing chat at /temp/chat so the RAG 
 ES: Este cambio agrega un chat presentable para cliente en /temp/chat para evaluar rapidamente el RAG desde el navegador.
 
 ---
+
+DOCS(database): Add ER diagrams and align the phase 1 schema documentation.
+EN: This change documents the database model in Mermaid and PlantUML, synchronizes the official schema docs, and tightens the initial SQL schema consistency before backend integration.
+ES: Este cambio documenta el modelo de base de datos en Mermaid y PlantUML, sincroniza la documentacion oficial del schema y ajusta la consistencia del SQL inicial antes de integrarlo con el backend.
