@@ -7,24 +7,6 @@
 -- CREATE DATABASE travel_agency;
 
 -- =============================================================
--- TIPOS ENUM
--- =============================================================
-CREATE TYPE user_role        AS ENUM ('IA-AGENT', 'AGENT', 'SELLER', 'ADMIN');
-CREATE TYPE customer_origin  AS ENUM ('WEB', 'WHATSAPP');
-CREATE TYPE travel_status    AS ENUM ('ACTIVE', 'INACTIVE', 'SOLD_OUT');
-CREATE TYPE travel_type      AS ENUM ('ALL_INCLUSIVE', 'CRUISE', 'CUSTOM');
-CREATE TYPE currency         AS ENUM ('MXN', 'USD');
-CREATE TYPE booking_status   AS ENUM ('RESERVED', 'CONFIRMED', 'CANCELLED', 'COMPLETED');
-CREATE TYPE payment_method   AS ENUM ('CASH', 'TRANSFER', 'CARD', 'MIX');
-CREATE TYPE payment_type     AS ENUM ('TOTAL', 'PARTIAL');
-CREATE TYPE review_type      AS ENUM ('POSITIVE', 'NEGATIVE', 'FEEDBACK', 'QUESTION', 'COMPLAINT');
-
-CREATE TYPE chat_intention   AS ENUM (
-    'BUY', 'INFO', 'QUOTE', 'PAY', 'COMPLAINT',
-    'CANCEL', 'STATUS', 'GREETING', 'OUT_OF_SCOPE', 'UNKNOWN'
-);
-
--- =============================================================
 -- SECCIÓN 1 — TABLAS SIN RELACIONES
 -- =============================================================
 
@@ -39,7 +21,7 @@ CREATE TABLE users (
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    rol user_role NOT NULL,
+    rol VARCHAR(20) NOT NULL,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -57,7 +39,7 @@ CREATE TABLE customers (
     email VARCHAR(100) UNIQUE,
     phone VARCHAR(14) NOT NULL UNIQUE,
     birthdate DATE,
-    origin customer_origin NOT NULL DEFAULT 'WHATSAPP',
+    origin VARCHAR(20) NOT NULL DEFAULT 'WHATSAPP',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -73,7 +55,7 @@ CREATE TABLE travels (
     id SERIAL PRIMARY KEY,
     name VARCHAR(150) NOT NULL,
     slug VARCHAR(170) NOT NULL UNIQUE,
-    type travel_type NOT NULL,
+    type VARCHAR(20) NOT NULL,
     destination VARCHAR(150) NOT NULL,
     origin VARCHAR(150),
     duration_days SMALLINT NOT NULL CHECK (duration_days > 0),
@@ -81,7 +63,7 @@ CREATE TABLE travels (
     stars SMALLINT CHECK (stars BETWEEN 1 AND 5),
     description TEXT NOT NULL,
     is_featured BOOLEAN NOT NULL DEFAULT FALSE,
-    status travel_status NOT NULL DEFAULT 'ACTIVE',
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -119,7 +101,7 @@ CREATE TABLE travel_packages (
     persons_included SMALLINT NOT NULL CHECK (persons_included > 0),
     hotel_stars SMALLINT CHECK (hotel_stars BETWEEN 1 AND 5),
     price_per_person NUMERIC(10, 2) NOT NULL CHECK (price_per_person > 0),
-    currency currency NOT NULL DEFAULT 'MXN',
+    currency VARCHAR(5) NOT NULL DEFAULT 'MXN',
     capacity SMALLINT CHECK (capacity > 0),
     available_spots SMALLINT CHECK (available_spots >= 0),
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
@@ -196,7 +178,7 @@ CREATE TABLE bookings (
     customer_phone VARCHAR(14) NOT NULL,
     price_of_sale NUMERIC(10, 2) NOT NULL CHECK (price_of_sale > 0),
     discount NUMERIC(10, 2) NOT NULL DEFAULT 0 CHECK (discount >= 0),
-    status booking_status NOT NULL DEFAULT 'RESERVED',
+    status VARCHAR(20) NOT NULL DEFAULT 'RESERVED',
     notes TEXT,
     pay_limit DATE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -230,8 +212,8 @@ CREATE TABLE payments (
     customer_id INT REFERENCES customers (id) ON DELETE SET NULL,
     verified_by INT REFERENCES users (id) ON DELETE SET NULL,
     amount NUMERIC(10, 2) NOT NULL CHECK (amount > 0),
-    method payment_method NOT NULL,
-    type payment_type NOT NULL,
+    method VARCHAR(20) NOT NULL,
+    type VARCHAR(20) NOT NULL,
     reference VARCHAR(255),
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -250,7 +232,7 @@ CREATE TABLE reviews (
     travel_id INT REFERENCES travels (id) ON DELETE SET NULL,
     customer_id INT REFERENCES customers (id) ON DELETE SET NULL,
     booking_id INT REFERENCES bookings (id) ON DELETE SET NULL,
-    type review_type NOT NULL,
+    type VARCHAR(20) NOT NULL,
     calification SMALLINT CHECK (calification BETWEEN 1 AND 5),
     commentary TEXT,
     is_visible BOOLEAN NOT NULL DEFAULT TRUE,
@@ -270,8 +252,8 @@ CREATE TABLE chats (
     id SERIAL PRIMARY KEY,
     customer_id INT REFERENCES customers (id) ON DELETE SET NULL,
     phone VARCHAR(14) NOT NULL,
-    attended_by user_role NOT NULL DEFAULT 'IA-AGENT',
-    closed_by user_role,
+    attended_by VARCHAR(20) NOT NULL DEFAULT 'IA-AGENT',
+    closed_by VARCHAR(20),
     chat_history JSONB NOT NULL DEFAULT '[]',
     context_summary TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -289,7 +271,7 @@ No se usa para recuperación de contexto.
 CREATE TABLE rag_chats (
     id SERIAL PRIMARY KEY,
     chat_id INT NOT NULL REFERENCES chats (id) ON DELETE CASCADE,
-    intention chat_intention NOT NULL DEFAULT 'UNKNOWN',
+    intention VARCHAR(20) NOT NULL DEFAULT 'UNKNOWN',
     escalated BOOLEAN NOT NULL DEFAULT FALSE,
     interaction JSONB DEFAULT '[]',
     received_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP

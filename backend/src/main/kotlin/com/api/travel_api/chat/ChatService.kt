@@ -19,7 +19,7 @@ class ChatService(
 
     @Transactional(readOnly = true)
     fun getChatByPhone(phone: String): ChatMessageResponse {
-        val chat = chatRepository.findByPhone(phone)
+        val chat = chatRepository.findFirstByPhoneAndClosedAtIsNullOrderByCreatedAtDesc(phone)
             ?: throw NotFoundException("Chat not found")
         return chat.toResponse()
     }

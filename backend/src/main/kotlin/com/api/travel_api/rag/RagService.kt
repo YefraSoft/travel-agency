@@ -104,7 +104,8 @@ class RagService(
             )
         )
 
-        val history = chat.chatHistory
+        val history = chat.chatHistory.toMutableList()
+        history.addAll(request.interaction)
         chat.chatHistory = history
 
         return chatRepository.save(chat).toResponse()

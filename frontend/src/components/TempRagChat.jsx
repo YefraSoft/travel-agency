@@ -16,7 +16,9 @@ const SUGGESTIONS = [
   "Como funciona el anticipo y el saldo?",
 ];
 
-export default function TempRagChat({ ragApiUrl }) {
+const DEMO_PHONE = "+521234567890";
+
+export default function TempRagChat({ ragApiUrl, phone = DEMO_PHONE }) {
   const [messages, setMessages] = useState(INITIAL_MESSAGES);
   const [responseTime, setResponseTime] = useState(null);
   const [input, setInput] = useState("");
@@ -45,6 +47,7 @@ export default function TempRagChat({ ragApiUrl }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message,
+          phone,
           history: messages.filter(
             (item) => item.role === "user" || item.role === "assistant",
           ),

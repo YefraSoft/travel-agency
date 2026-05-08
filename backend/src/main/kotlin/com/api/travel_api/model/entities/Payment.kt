@@ -4,8 +4,6 @@ import com.api.travel_api.model.enums.PaymentMethod
 import com.api.travel_api.model.enums.PaymentType
 import jakarta.persistence.*
 import jakarta.validation.constraints.DecimalMin
-import org.hibernate.annotations.JdbcType
-import org.hibernate.dialect.type.PostgreSQLEnumJdbcType
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
@@ -33,13 +31,11 @@ data class Payment(
     var amount: BigDecimal,
 
     @Enumerated(EnumType.STRING)
-    @JdbcType(PostgreSQLEnumJdbcType::class)
-    @Column(nullable = false, columnDefinition = "payment_method")
+    @Column(nullable = false, length = 20)
     var method: PaymentMethod,
 
     @Enumerated(EnumType.STRING)
-    @JdbcType(PostgreSQLEnumJdbcType::class)
-    @Column(nullable = false, columnDefinition = "payment_type")
+    @Column(nullable = false, length = 20)
     var type: PaymentType,
 
     @Column(length = 255)

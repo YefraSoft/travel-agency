@@ -4,9 +4,7 @@ import com.api.travel_api.api.ChatMessage
 import com.api.travel_api.model.enums.ChatIntention
 import com.api.travel_api.model.enums.MessageType
 import jakarta.persistence.*
-import org.hibernate.annotations.JdbcType
 import org.hibernate.annotations.JdbcTypeCode
-import org.hibernate.dialect.type.PostgreSQLEnumJdbcType
 import org.hibernate.type.SqlTypes
 import java.time.LocalDateTime
 
@@ -22,8 +20,7 @@ data class RagChat(
     var chat: Chat,
 
     @Enumerated(EnumType.STRING)
-    @JdbcType(PostgreSQLEnumJdbcType::class)
-    @Column(nullable = false, columnDefinition = "chat_intention")
+    @Column(nullable = false, length = 20)
     var intention: ChatIntention = ChatIntention.UNKNOWN,
 
     @Column(nullable = false)

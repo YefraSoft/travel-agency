@@ -4,8 +4,6 @@ import com.api.travel_api.model.enums.ReviewType
 import jakarta.persistence.*
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
-import org.hibernate.annotations.JdbcType
-import org.hibernate.dialect.type.PostgreSQLEnumJdbcType
 import java.time.LocalDateTime
 
 @Entity
@@ -31,8 +29,7 @@ data class Review(
     var booking: Booking? = null,
 
     @Enumerated(EnumType.STRING)
-    @JdbcType(PostgreSQLEnumJdbcType::class)
-    @Column(nullable = false, columnDefinition = "review_type")
+    @Column(nullable = false, length = 20)
     var type: ReviewType,
 
     @field:Min(1)

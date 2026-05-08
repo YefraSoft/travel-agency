@@ -3,8 +3,6 @@ package com.api.travel_api.model.entities
 import com.api.travel_api.model.enums.CustomerOrigin
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotBlank
-import org.hibernate.annotations.JdbcType
-import org.hibernate.dialect.type.PostgreSQLEnumJdbcType
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -31,8 +29,7 @@ data class Customer(
     var birthdate: LocalDate? = null,
 
     @Enumerated(EnumType.STRING)
-    @JdbcType(PostgreSQLEnumJdbcType::class)
-    @Column(name = "origin", nullable = false, columnDefinition = "customer_origin")
+    @Column(name = "origin", nullable = false, length = 20)
     var origin: CustomerOrigin = CustomerOrigin.WHATSAPP,
 
     @Column(name = "created_at", nullable = false, updatable = false)

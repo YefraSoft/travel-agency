@@ -18,8 +18,6 @@ import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Positive
-import org.hibernate.annotations.JdbcType
-import org.hibernate.dialect.type.PostgreSQLEnumJdbcType
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
@@ -63,8 +61,7 @@ data class TravelPackage(
     var pricePerPerson: BigDecimal,
 
     @Enumerated(EnumType.STRING)
-    @JdbcType(PostgreSQLEnumJdbcType::class)
-    @Column(nullable = false, columnDefinition = "currency")
+    @Column(nullable = false, length = 5)
     var currency: Currency = Currency.MXN,
 
     @Column

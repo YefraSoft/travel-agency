@@ -7,8 +7,6 @@ import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Positive
-import org.hibernate.annotations.JdbcType
-import org.hibernate.dialect.type.PostgreSQLEnumJdbcType
 import java.time.LocalDateTime
 
 
@@ -30,8 +28,7 @@ data class Travel(
     var slug: String,
 
     @Enumerated(EnumType.STRING)
-    @JdbcType(PostgreSQLEnumJdbcType::class)
-    @Column(nullable = false, columnDefinition = "travel_type")
+    @Column(nullable = false, length = 20)
     var type: TravelType,
 
     @field:NotBlank
@@ -62,8 +59,7 @@ data class Travel(
     var featured: Boolean = false,
 
     @Enumerated(EnumType.STRING)
-    @JdbcType(PostgreSQLEnumJdbcType::class)
-    @Column(nullable = false, columnDefinition = "travel_status")
+    @Column(nullable = false, length = 20)
     var status: TravelStatus = TravelStatus.ACTIVE,
 
     @Column(name = "created_at", nullable = false, updatable = false)

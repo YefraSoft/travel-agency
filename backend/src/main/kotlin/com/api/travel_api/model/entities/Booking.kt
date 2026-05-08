@@ -4,8 +4,6 @@ import com.api.travel_api.model.enums.BookingStatus
 import jakarta.persistence.*
 import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.NotBlank
-import org.hibernate.annotations.JdbcType
-import org.hibernate.dialect.type.PostgreSQLEnumJdbcType
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -46,8 +44,7 @@ data class Booking(
     var discount: BigDecimal = BigDecimal.ZERO,
 
     @Enumerated(EnumType.STRING)
-    @JdbcType(PostgreSQLEnumJdbcType::class)
-    @Column(nullable = false, columnDefinition = "booking_status")
+    @Column(nullable = false, length = 20)
     var status: BookingStatus = BookingStatus.RESERVED,
 
     @Column(columnDefinition = "TEXT")
