@@ -21,6 +21,11 @@ class RagController(private val ragService: RagService) {
     @PostMapping("/chats")
     fun createChat(@Valid @RequestBody request: ChatCreateRequest): ChatResponse = ragService.createChat(request)
 
+
+    /* Continue Here
+    @GetMapping("/chats")
+    fun getChats():
+*/
     @PostMapping("/chats/{id}/messages")
     fun addMessage(@PathVariable id: Int, @RequestBody request: ChatMessageRequest): ChatResponse =
         ragService.addMessage(id, request)

@@ -114,6 +114,13 @@ data class CustomerResponse(
     val createdAt: LocalDateTime
 )
 
+data class CustomerChatResponse(
+    val id: Int,
+    val name: String,
+    val phone: String,
+    val origin: CustomerOrigin
+)
+
 data class BookingRequest(
     val travelId: Int,
     val packageId: Int,
@@ -220,6 +227,24 @@ data class ChatMessageRequest(
     val intention: ChatIntention = ChatIntention.UNKNOWN,
     val escalated: Boolean = false,
     val interaction: Map<String, Any?> = emptyMap()
+)
+
+data class ChatMessageResponse(
+    val id: Int,
+    val customerId: Int?,
+    val attendedBy: UserRole,
+    val closedBy: UserRole?,
+    val chatHistory: List<ChatMessage>,
+    val contextSummary: String?
+)
+
+data class ChatMessage(
+    val type: MessageType,
+    val content: String,
+    val name: String? = null,
+    val toolCallId: String? = null,
+    val metadata: Map<String, Any?>? = null,
+    val timestamp: String? = null
 )
 
 data class ChatCloseRequest(val contextSummary: String? = null)

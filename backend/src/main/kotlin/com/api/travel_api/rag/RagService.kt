@@ -31,7 +31,6 @@ class RagService(
             .filter { it.status.name == "ACTIVE" }
             .map {
                 val activePackages = it.packages.filter { pkg -> pkg.active }
-
                 RagTravelResponse(
                     id = it.id!!,
                     name = it.name,

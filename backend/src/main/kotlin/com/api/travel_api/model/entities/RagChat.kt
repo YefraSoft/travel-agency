@@ -1,6 +1,8 @@
 package com.api.travel_api.model.entities
 
+import com.api.travel_api.api.ChatMessage
 import com.api.travel_api.model.enums.ChatIntention
+import com.api.travel_api.model.enums.MessageType
 import jakarta.persistence.*
 import org.hibernate.annotations.JdbcType
 import org.hibernate.annotations.JdbcTypeCode
@@ -29,7 +31,7 @@ data class RagChat(
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    var interaction: Map<String, Any?> = emptyMap(),
+    var interaction: MutableList<ChatMessage> = mutableListOf(),
 
     @Column(name = "received_at", nullable = false, updatable = false)
     var receivedAt: LocalDateTime = LocalDateTime.now()
