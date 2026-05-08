@@ -82,9 +82,10 @@ class RagService(
             Chat(
                 customer = customer,
                 phone = request.phone,
-                attendedBy = UserRole.IA_AGENT,
+                attendedBy = request.attendedBy,
+                closedBy = request.closedBy,
+                chatHistory = request.chatHistory,
                 contextSummary = request.contextSummary,
-                chatHistory = mutableListOf()
             )
         ).toResponse()
     }

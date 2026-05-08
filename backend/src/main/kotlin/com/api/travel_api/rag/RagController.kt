@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/api/rag")
 @Tag(name = "RAG and n8n")
 class RagController(private val ragService: RagService, private val chatService: ChatService) {
+
     @GetMapping("/travels")
     fun travels(): List<RagTravelResponse> = ragService.travels()
 
@@ -19,11 +20,10 @@ class RagController(private val ragService: RagService, private val chatService:
     @PostMapping("/quote")
     fun quote(@Valid @RequestBody request: RagQuoteRequest): BookingResponse = ragService.quote(request)
 
+
+    /*CHAT MANAGEMENT*/
     @PostMapping("/chats")
     fun createChat(@Valid @RequestBody request: ChatCreateRequest): ChatResponse = ragService.createChat(request)
-
-    @GetMapping("/chats")
-    fun getChats(): List<ChatMessageResponse> = chatService.getChats();
 
     @PostMapping("/chats/{id}/messages")
     fun addMessage(@PathVariable id: Int, @RequestBody request: ChatMessageRequest): ChatResponse =
@@ -32,5 +32,12 @@ class RagController(private val ragService: RagService, private val chatService:
     @PostMapping("/chats/{id}/close")
     fun closeChat(@PathVariable id: Int, @RequestBody request: ChatCloseRequest): ChatResponse =
         ragService.closeChat(id, request)
+
+    @GetMapping("/chats")
+    fun getChats(): List<ChatMessageResponse> = chatService.getChats();
+
+    @GetMapping("/chats/{phone}")
+    fun getChatByNumber(@PathVariable phone: String): ChatMessageResponse? = chatService.getChatByPhone(phone);
+
 }
 

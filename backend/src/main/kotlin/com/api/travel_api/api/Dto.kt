@@ -73,7 +73,15 @@ data class TravelPackageResponse(
 )
 
 data class TravelHighlightResponse(val id: Int, val icon: String, val label: String, val sort: Short)
-data class TravelIncludeResponse(val id: Int, val packageId: Int?, val icon: String, val label: String, val description: String?, val sort: Short)
+data class TravelIncludeResponse(
+    val id: Int,
+    val packageId: Int?,
+    val icon: String,
+    val label: String,
+    val description: String?,
+    val sort: Short
+)
+
 data class TravelImageResponse(val id: Int, val url: String, val altText: String, val sort: Short)
 
 data class TravelResponse(
@@ -221,8 +229,11 @@ data class RagQuoteRequest(
 
 data class ChatCreateRequest(
     @field:NotBlank val phone: String,
-    val customerId: Int? = null,
-    val contextSummary: String? = null
+    val customerId: Int?,
+    val attendedBy: UserRole,
+    val closedBy: UserRole?,
+    val chatHistory: List<ChatMessage>,
+    val contextSummary: String?
 )
 
 data class ChatMessageRequest(
