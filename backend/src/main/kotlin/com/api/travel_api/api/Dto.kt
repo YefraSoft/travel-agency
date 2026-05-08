@@ -226,7 +226,7 @@ data class ChatCreateRequest(
 data class ChatMessageRequest(
     val intention: ChatIntention = ChatIntention.UNKNOWN,
     val escalated: Boolean = false,
-    val interaction: Map<String, Any?> = emptyMap()
+    val interaction: MutableList<ChatMessage>
 )
 
 data class ChatMessageResponse(

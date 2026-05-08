@@ -38,9 +38,6 @@ data class Customer(
     @Column(name = "created_at", nullable = false, updatable = false)
     var createdAt: LocalDateTime = LocalDateTime.now(),
 
-    @Column(name = "updated_at", nullable = false)
-    var updatedAt: LocalDateTime = LocalDateTime.now(),
-
     @OneToMany(
         mappedBy = "customer",
         cascade = [CascadeType.ALL],
