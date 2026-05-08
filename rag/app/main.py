@@ -4,7 +4,6 @@ import json
 import math
 import os
 import re
-import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -20,7 +19,7 @@ STORAGE_DIR = ROOT / "storage"
 INDEX_PATH = STORAGE_DIR / "index.json"
 
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434").rstrip("/")
-LLM_MODEL = os.getenv("OLLAMA_LLM_MODEL", "qwen3:8b")
+LLM_MODEL = os.getenv("OLLAMA_LLM_MODEL", "gemma3:12b")
 EMBED_MODEL = os.getenv("OLLAMA_EMBED_MODEL", "qwen3-embedding:latest")
 TOP_K = int(os.getenv("RAG_TOP_K", "5"))
 
@@ -44,44 +43,22 @@ class ChatResponse(BaseModel):
 app = FastAPI(title="Travel Agency RAG Demo", version="0.1.0")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4321", "http://127.0.0.1:4321"],
+    allow_origins=[
+        "http://localhost:4321",
+        "http://localhost:4322",
+        "http://127.0.0.1:4321",
+        "https://lanky-violator-freight.ngrok-free.dev",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-def _ollama_http(endpoint: str, payload: dict[str, Any], timeout: int = 120) -> dict[str, Any]:
+def ollama(endpoint: str, payload: dict[str, Any], timeout: int = 120) -> dict[str, Any]:
     response = requests.post(f"{OLLAMA_BASE_URL}{endpoint}", json=payload, timeout=timeout)
     response.raise_for_status()
     return response.json()
-
-
-def _ollama_powershell(endpoint: str, payload: dict[str, Any], timeout: int = 180) -> dict[str, Any]:
-    endpoint_json = json.dumps(endpoint)
-    script = r"""
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$OutputEncoding = [System.Text.Encoding]::UTF8
-$body = [Console]::In.ReadToEnd()
-$uri = "http://localhost:11434" + ENDPOINT_PLACEHOLDER
-Invoke-RestMethod -Uri $uri -Method Post -Body $body -ContentType "application/json" -TimeoutSec 180 | ConvertTo-Json -Depth 12
-""".replace("ENDPOINT_PLACEHOLDER", endpoint_json)
-    completed = subprocess.run(
-        ["powershell.exe", "-NoProfile", "-Command", script],
-        check=True,
-        input=json.dumps(payload).encode("utf-8"),
-        capture_output=True,
-        timeout=timeout,
-    )
-    stdout = completed.stdout.decode("utf-8-sig", errors="replace")
-    return json.loads(stdout)
-
-
-def ollama(endpoint: str, payload: dict[str, Any], timeout: int = 120) -> dict[str, Any]:
-    try:
-        return _ollama_http(endpoint, payload, timeout=timeout)
-    except Exception:
-        return _ollama_powershell(endpoint, payload, timeout=max(timeout, 180))
 
 
 def embed(text: str) -> list[float]:

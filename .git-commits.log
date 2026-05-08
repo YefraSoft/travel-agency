@@ -34,3 +34,7 @@ ES: Este cambio agrega un chat presentable para cliente en /temp/chat para evalu
 DOCS(database): Add ER diagrams and align the phase 1 schema documentation.
 EN: This change documents the database model in Mermaid and PlantUML, synchronizes the official schema docs, and tightens the initial SQL schema consistency before backend integration.
 ES: Este cambio documenta el modelo de base de datos en Mermaid y PlantUML, sincroniza la documentacion oficial del schema y ajusta la consistencia del SQL inicial antes de integrarlo con el backend.
+
+FIX(backend): Map Kotlin enums to PostgreSQL native enum columns.
+EN: This change keeps Spring Data queries compatible with the existing PostgreSQL enum schema so public and admin endpoints can run without SQL type errors.
+ES: Este cambio mantiene las consultas de Spring Data compatibles con los enums nativos de PostgreSQL para que los endpoints publicos y administrativos funcionen sin errores de tipo SQL.

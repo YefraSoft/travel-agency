@@ -89,7 +89,7 @@ uvicorn app.main:app --host 127.0.0.1 --port 5000 --reload
 Reindexar conocimiento demo:
 
 ```bash
-curl -X POST http://127.0.0.1:8001/reindex
+curl -X POST http://127.0.0.1:5000/reindex
 ```
 
 Ejecutar frontend:

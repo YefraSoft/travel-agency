@@ -1,14 +1,10 @@
 package com.api.travel_api.model.entities
 
 import com.api.travel_api.model.enums.CustomerOrigin
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.Table
+import jakarta.persistence.*
+import jakarta.validation.constraints.NotBlank
+import org.hibernate.annotations.JdbcType
+import org.hibernate.dialect.type.PostgreSQLEnumJdbcType
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -18,14 +14,16 @@ data class Customer(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
+    val id: Int? = null,
 
+    @field:NotBlank
     @Column(name = "name", nullable = false, length = 100)
     var name: String,
 
     @Column(name = "email", unique = true, length = 100)
     var email: String? = null,
 
+    @field:NotBlank
     @Column(name = "phone", nullable = false, unique = true, length = 14)
     var phone: String,
 
@@ -33,12 +31,21 @@ data class Customer(
     var birthdate: LocalDate? = null,
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "origin", nullable = false)
+    @JdbcType(PostgreSQLEnumJdbcType::class)
+    @Column(name = "origin", nullable = false, columnDefinition = "customer_origin")
     var origin: CustomerOrigin = CustomerOrigin.WHATSAPP,
 
     @Column(name = "created_at", nullable = false, updatable = false)
     var createdAt: LocalDateTime = LocalDateTime.now(),
 
     @Column(name = "updated_at", nullable = false)
-    var updatedAt: LocalDateTime = LocalDateTime.now()
+    var updatedAt: LocalDateTime = LocalDateTime.now(),
+
+    @OneToMany(
+        mappedBy = "customer",
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
+    var companions: MutableList<Companion> = mutableListOf()
 )
