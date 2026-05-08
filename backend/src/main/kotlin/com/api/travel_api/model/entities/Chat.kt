@@ -1,7 +1,6 @@
 package com.api.travel_api.model.entities
 
 import com.api.travel_api.api.ChatMessage
-import com.api.travel_api.model.enums.MessageType
 import com.api.travel_api.model.enums.UserRole
 import com.api.travel_api.model.enums.UserRoleConverter
 import jakarta.persistence.*
@@ -35,7 +34,7 @@ data class Chat(
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "chat_history", columnDefinition = "jsonb")
-    var chatHistory: MutableList<ChatMessage> = mutableListOf(),
+    var chatHistory: List<ChatMessage> = emptyList(),
 
     @Column(name = "context_summary", columnDefinition = "TEXT")
     var contextSummary: String? = null,

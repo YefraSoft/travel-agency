@@ -1,6 +1,8 @@
 package com.api.travel_api.api
 
 import com.api.travel_api.model.enums.*
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.Valid
 import jakarta.validation.constraints.*
 import java.math.BigDecimal
@@ -238,13 +240,9 @@ data class ChatMessageResponse(
     val contextSummary: String?
 )
 
-data class ChatMessage(
-    val type: MessageType,
-    val content: String,
-    val name: String? = null,
-    val toolCallId: String? = null,
-    val metadata: Map<String, Any?>? = null,
-    val timestamp: String? = null
+data class ChatMessage @JsonCreator constructor(
+    @JsonProperty("type") val type: MessageType,
+    @JsonProperty("content") val content: String
 )
 
 data class ChatCloseRequest(val contextSummary: String? = null)

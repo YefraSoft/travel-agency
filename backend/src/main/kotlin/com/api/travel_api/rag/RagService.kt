@@ -2,6 +2,7 @@ package com.api.travel_api.rag
 
 import com.api.travel_api.api.*
 import com.api.travel_api.booking.BookingService
+import com.api.travel_api.chat.ChatRepository
 import com.api.travel_api.common.NotFoundException
 import com.api.travel_api.customer.CustomerService
 import com.api.travel_api.customer.toResponse

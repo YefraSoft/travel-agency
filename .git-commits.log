@@ -38,3 +38,7 @@ ES: Este cambio documenta el modelo de base de datos en Mermaid y PlantUML, sinc
 FIX(backend): Map Kotlin enums to PostgreSQL native enum columns.
 EN: This change keeps Spring Data queries compatible with the existing PostgreSQL enum schema so public and admin endpoints can run without SQL type errors.
 ES: Este cambio mantiene las consultas de Spring Data compatibles con los enums nativos de PostgreSQL para que los endpoints publicos y administrativos funcionen sin errores de tipo SQL.
+
+FIX(backend): Allow RAG chat history JSON deserialization.
+EN: This change lets the RAG chat listing endpoint read persisted chat history from PostgreSQL JSONB, including lowercase message type values saved by external chat clients.
+ES: Este cambio permite que el endpoint de listado de chats del RAG lea el historial persistido desde JSONB de PostgreSQL, incluyendo tipos de mensaje en minusculas guardados por clientes externos.
