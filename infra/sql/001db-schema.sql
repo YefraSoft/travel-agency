@@ -337,6 +337,21 @@ CREATE INDEX idx_rag_chats_intention ON rag_chats (intention);
 CREATE INDEX idx_rag_chats_escalated ON rag_chats (escalated);
 
 -- =============================================================
+-- ÍNDICES COMPUESTOS (Performance Optimization)
+-- =============================================================
+-- Querys comunes en cobranza y historial
+CREATE INDEX idx_bookings_customer_status ON bookings (customer_id, status);
+CREATE INDEX idx_payments_booking_created ON payments (booking_id, created_at DESC);
+-- Query: buscar pagos recientes de un cliente vía booking
+CREATE INDEX idx_payments_created ON payments (created_at DESC)
+WHERE is_active = TRUE;
+-- Query: historial de cliente con estado filtrado
+CREATE INDEX idx_bookings_customer_created ON bookings (customer_id, created_at DESC);
+-- Query: viajes activos filtrados por tipo/destino
+CREATE INDEX idx_travels_active_type ON travels (type)
+WHERE status = 'ACTIVE';
+
+-- =============================================================
 -- FUNCIÓN: updated_at automático
 -- =============================================================
 
