@@ -42,3 +42,7 @@ ES: Este cambio mantiene las consultas de Spring Data compatibles con los enums 
 FIX(backend): Allow RAG chat history JSON deserialization.
 EN: This change lets the RAG chat listing endpoint read persisted chat history from PostgreSQL JSONB, including lowercase message type values saved by external chat clients.
 ES: Este cambio permite que el endpoint de listado de chats del RAG lea el historial persistido desde JSONB de PostgreSQL, incluyendo tipos de mensaje en minusculas guardados por clientes externos.
+
+FEAT(rag): Add JSON and Markdown document loaders.
+EN: This change normalizes backend travel API JSON into RAG-ready documents and adds Markdown/text loaders for local knowledge sources.
+ES: Este cambio normaliza el JSON de viajes del backend en documentos listos para RAG y agrega loaders Markdown/text para fuentes locales de conocimiento.

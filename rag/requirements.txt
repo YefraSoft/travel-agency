@@ -5,3 +5,5 @@ requests==2.32.3
 httpx==0.28.1
 langchain-ollama==0.3.1
 langchain-core==0.3.40
+chromadb==0.4.24
+ollama==0.1.44

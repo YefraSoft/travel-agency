@@ -2,34 +2,40 @@ from __future__ import annotations
 import os
 import httpx
 
+from dto import CustomerResponse, ChatResponse, ChatMessage
+from utils import to_langchain_messages
 
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8080").rstrip("/")
 
 
-class BackendClient:
+class RagService:
+
     def __init__(self) -> None:
         self._client = httpx.Client(base_url=BACKEND_URL, timeout=15.0)
 
-    # ------------------------------------------------------------------
-    # Chats
-    # ------------------------------------------------------------------
-
-    def get_active_chat(self, phone: str) -> dict | None:
+    def get_active_chat_messages(self, phone: str):
         resp = self._client.get(f"/api/rag/chats/{phone}")
         if resp.status_code == 404:
             return None
         resp.raise_for_status()
-        return resp.json()
+        chat = ChatResponse.model_validate(resp.json())
+        return to_langchain_messages(chat)
 
-    def create_chat(self, phone: str) -> dict:
+    def create_chat(self, phone: str, chatHistory: list[ChatMessage] | None) -> dict:
+        client_resp = self._client.get(f"/api/admin/customers/phone/{phone}")
+        if client_resp.status_code == 404:
+            customer = None
+        else:
+            client_resp.raise_for_status()
+            customer = CustomerResponse.model_validate(client_resp.json())
         resp = self._client.post(
             "/api/rag/chats",
             json={
                 "phone": phone,
-                "customerId": None,
+                "customerId": customer.id if customer else None,
                 "attendedBy": "IA_AGENT",
                 "closedBy": None,
-                "chatHistory": [],
+                "chatHistory": chatHistory if chatHistory,
                 "contextSummary": None,
             },
         )
@@ -53,10 +59,6 @@ class BackendClient:
         )
         resp.raise_for_status()
         return resp.json()
-
-    # ------------------------------------------------------------------
-    # Travels
-    # ------------------------------------------------------------------
 
     def get_travels(self) -> list[dict]:
         resp = self._client.get("/api/rag/travels")
