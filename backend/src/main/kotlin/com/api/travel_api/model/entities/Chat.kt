@@ -43,9 +43,5 @@ data class Chat(
     var createdAt: LocalDateTime = LocalDateTime.now(),
 
     @Column(name = "closed_at")
-    var closedAt: LocalDateTime? = null,
-
-    @OneToMany(mappedBy = "chat", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
-    var ragMessages: MutableList<RagChat> = mutableListOf()
+    var closedAt: LocalDateTime? = null
 )
-

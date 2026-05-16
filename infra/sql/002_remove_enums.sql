@@ -35,9 +35,6 @@ ALTER TABLE chats             ALTER COLUMN attended_by  TYPE VARCHAR(20) USING a
 ALTER TABLE chats             ALTER COLUMN attended_by  SET DEFAULT 'IA-AGENT';
 ALTER TABLE chats             ALTER COLUMN closed_by    TYPE VARCHAR(20) USING closed_by::text;
 
-ALTER TABLE rag_chats         ALTER COLUMN intention    TYPE VARCHAR(20) USING intention::text;
-ALTER TABLE rag_chats         ALTER COLUMN intention    SET DEFAULT 'UNKNOWN';
-
 -- =============================================================
 -- Eliminar tipos enum (ya no hay columnas que los referencien)
 -- =============================================================

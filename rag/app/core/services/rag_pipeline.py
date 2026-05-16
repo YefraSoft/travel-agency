@@ -53,7 +53,7 @@ class RAGPipeline:
         chunker: BaseChunker | MarkdownChunker |None = None,
         embedding_service: EmbeddingService | None = None,
         persist_dir: str | None = None,
-        collection_name: str = "documents",
+        collection_name: str | None = None,
     ) -> None:
         """
         Inicializa el pipeline RAG.
@@ -79,7 +79,7 @@ class RAGPipeline:
 
         self.search_service = SemanticSearchService(
             persist_dir=persist_dir,
-            collection_name=collection_name,
+            collection_name=collection_name or settings.CHROMA_COLLECTION,
             embedding_service=self.embedding_service,
         )
 

@@ -16,8 +16,8 @@ STORAGE_DIR = ROOT_DIR / "storage"
 KNOWLEDGE_DIR = DATA_DIR / "knowledge"
 
 # Ollama
-OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
-EMBEDDING_MODEL = os.getenv("OLLAMA_EMBEDDING_MODEL", "qwen3-embedding:latest")
+OLLAMA_HOST = os.getenv("OLLAMA_HOST") or os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+EMBEDDING_MODEL = os.getenv("OLLAMA_EMBEDDING_MODEL") or os.getenv("OLLAMA_EMBED_MODEL", "qwen3-embedding:latest")
 LLM_MODEL = os.getenv("OLLAMA_LLM_MODEL", "gemma3:12b")
 
 # RAG

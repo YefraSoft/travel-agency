@@ -7,7 +7,6 @@ import com.api.travel_api.common.NotFoundException
 import com.api.travel_api.customer.CustomerService
 import com.api.travel_api.customer.toResponse
 import com.api.travel_api.model.entities.Chat
-import com.api.travel_api.model.entities.RagChat
 import com.api.travel_api.model.enums.CustomerOrigin
 import com.api.travel_api.model.enums.UserRole
 import com.api.travel_api.travel.TravelRepository
@@ -22,8 +21,7 @@ class RagService(
     private val travelRepository: TravelRepository,
     private val customerService: CustomerService,
     private val bookingService: BookingService,
-    private val chatRepository: ChatRepository,
-    private val ragChatRepository: RagChatRepository
+    private val chatRepository: ChatRepository
 ) {
 
     @Transactional(readOnly = true)
@@ -94,15 +92,6 @@ class RagService(
     fun addMessage(chatId: Int, request: ChatMessageRequest): ChatResponse {
         val chat = chatRepository.findById(chatId)
             .orElseThrow { NotFoundException("Chat not found") }
-
-        ragChatRepository.save(
-            RagChat(
-                chat = chat,
-                intention = request.intention,
-                escalated = request.escalated,
-                interaction = request.interaction
-            )
-        )
 
         val history = chat.chatHistory.toMutableList()
         history.addAll(request.interaction)

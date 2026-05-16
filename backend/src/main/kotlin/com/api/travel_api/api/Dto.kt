@@ -237,8 +237,6 @@ data class ChatCreateRequest(
 )
 
 data class ChatMessageRequest(
-    val intention: ChatIntention = ChatIntention.UNKNOWN,
-    val escalated: Boolean = false,
     val interaction: MutableList<ChatMessage>
 )
 
@@ -273,4 +271,3 @@ data class PaymentAlertResponse(
     val pendingBalance: BigDecimal,
     val payLimit: LocalDate?
 )
-

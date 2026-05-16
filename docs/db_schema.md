@@ -181,14 +181,6 @@ erDiagram
         timestamp closed_at
     }
 
-    RAG_CHATS {
-        int id PK
-        int chat_id FK
-        chat_intention intention
-        boolean escalated
-        jsonb interaction
-        timestamp received_at
-    }
 ```
 
 ## Diagrama E-R — PlantUML
@@ -355,16 +347,6 @@ entity chats {
   closed_at : TIMESTAMP
 }
 
-entity rag_chats {
-  * id : SERIAL <<PK>>
-  --
-  chat_id : INT <<FK>>
-  intention : chat_intention
-  escalated : BOOLEAN
-  interaction : JSONB
-  received_at : TIMESTAMP
-}
-
 users ||--o{ bookings : created_by
 users ||--o{ payments : verified_by
 customers ||--o{ companions : owns
@@ -384,7 +366,6 @@ bookings ||--o{ booking_companions : has
 companions ||--o{ booking_companions : included
 bookings ||--o{ payments : receives
 bookings ||--o{ reviews : verifies
-chats ||--o{ rag_chats : processed
 @enduml
 ```
 
@@ -626,21 +607,6 @@ Almacenamiento frío. El RAG usa Redis como contexto activo.
 | `context_summary` | `TEXT` | nullable | Cargado en Redis en arranque frío |
 | `created_at` | `TIMESTAMP` | NOT NULL | |
 | `closed_at` | `TIMESTAMP` | nullable | NULL = chat abierto |
-
----
-
-### `rag_chats` → `chats`
-
-Un registro por mensaje procesado por el RAG. Solo métricas.
-
-| Columna | Tipo | Restricciones | Descripción |
-|---|---|---|---|
-| `id` | `SERIAL` | PK | |
-| `chat_id` | `INT` | NOT NULL, FK → chats, CASCADE | |
-| `intention` | `chat_intention` | NOT NULL, DEFAULT 'UNKNOWN' | |
-| `escalated` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | |
-| `interaction` | `JSONB` | DEFAULT '[]' | Payload resumido o métrica del mensaje procesado |
-| `received_at` | `TIMESTAMP` | NOT NULL | |
 
 ---
 

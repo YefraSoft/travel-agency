@@ -290,18 +290,13 @@ Todos los servicios retornan esta estructura:
 
 ---
 
-## 🚀 Próximos Pasos
+## 🚀 Estado Actual
 
-1. **Reemplazar knowledge_base.py**
+1. **`knowledge_base.py` reemplazado**
 
-   ```python
-   # En main.py o donde usas el RAG:
-   from app.core.services import RAGPipeline
-   pipeline = RAGPipeline()
-   results = pipeline.search(query)
-   ```
+   `main.py` ya usa `RetrievalService`, que delega en `RAGPipeline` y ChromaDB.
 
-2. **Migrar datos** (opcional)
+2. **Migrar datos**
 
    ```python
    # Los embeddings anteriores en JSON se perderán
@@ -339,6 +334,16 @@ app/
 │   ├── __init__.py
 │   └── pipeline_example.py ← NUEVO: Ejemplo completo
 │
+├── api/
+│   └── routes.py ← Endpoints FastAPI
+│
+├── clients/
+│   └── backend_client.py ← Cliente backend validado
+│
+├── schemas/ ← DTOs Pydantic
+├── services/ ← Orquestación de chat, LLM y recuperación
+├── formatters/ ← Formateo de contexto para prompts
+│
 ├── ARCHITECTURE.md ← NUEVO: Documentación técnica
 └── MODULARIZATION_GUIDE.md ← ESTE ARCHIVO
 ```
@@ -350,7 +355,7 @@ app/
 - [ ] Dependencias instaladas: `pip install -r requirements.txt`
 - [ ] ChromaDB descargado: `chromadb==0.4.24`
 - [ ] Ollama ejecutándose: `http://localhost:11434`
-- [ ] Estructura de directorios correcta
+- [x] Estructura de directorios correcta
 - [ ] Ejemplo ejecutable: `python -m app.examples.pipeline_example`
 
 ---

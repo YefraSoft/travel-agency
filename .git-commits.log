@@ -46,3 +46,17 @@ ES: Este cambio permite que el endpoint de listado de chats del RAG lea el histo
 FEAT(rag): Add JSON and Markdown document loaders.
 EN: This change normalizes backend travel API JSON into RAG-ready documents and adds Markdown/text loaders for local knowledge sources.
 ES: Este cambio normaliza el JSON de viajes del backend en documentos listos para RAG y agrega loaders Markdown/text para fuentes locales de conocimiento.
+
+---
+
+REFACTOR(database): Remove redundant rag_chats storage.
+EN: This change keeps RAG conversation persistence in the chats table only, avoiding duplicated message history in development and clean production installs.
+ES: Este cambio mantiene la persistencia de conversaciones del RAG solo en la tabla chats, evitando historial duplicado en desarrollo e instalaciones limpias de produccion.
+
+REFACTOR(rag): Modularize chat orchestration and backend validation.
+EN: This change separates FastAPI routes, backend client validation, schemas, formatters, retrieval and LLM orchestration so backend payloads are checked before use.
+ES: Este cambio separa rutas FastAPI, validacion del cliente backend, schemas, formateadores, recuperacion y orquestacion LLM para revisar los payloads del backend antes de usarlos.
+
+CHORE(backend): Point local Spring datasource to Docker PostgreSQL.
+EN: This change aligns the backend development profile with the local PostgreSQL container used for endpoint and RAG integration checks.
+ES: Este cambio alinea el perfil local del backend con el contenedor PostgreSQL usado para verificar endpoints e integracion con el RAG.

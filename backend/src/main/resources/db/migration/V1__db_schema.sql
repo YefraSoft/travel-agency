@@ -19,11 +19,6 @@ CREATE TYPE payment_method   AS ENUM ('CASH', 'TRANSFER', 'CARD', 'MIX');
 CREATE TYPE payment_type     AS ENUM ('TOTAL', 'PARTIAL');
 CREATE TYPE review_type      AS ENUM ('POSITIVE', 'NEGATIVE', 'FEEDBACK', 'QUESTION', 'COMPLAINT');
 
-CREATE TYPE chat_intention   AS ENUM (
-    'BUY', 'INFO', 'QUOTE', 'PAY', 'COMPLAINT',
-    'CANCEL', 'STATUS', 'GREETING', 'OUT_OF_SCOPE', 'UNKNOWN'
-);
-
 -- =============================================================
 -- SECCIÓN 1 — TABLAS SIN RELACIONES
 -- =============================================================
@@ -278,23 +273,6 @@ CREATE TABLE chats (
     closed_at TIMESTAMP
 );
 
--- RAG_CHATS: resumen (CHATS 1:N)
--- -----------------------------------------------
-/*
-Un registro por cada mensaje procesado por el agente RAG.
-Existe exclusivamente para métricas de eficiencia: intenciones
-más frecuentes, tasa de escalado, distribución por intención.
-No se usa para recuperación de contexto.
-*/
-CREATE TABLE rag_chats (
-    id SERIAL PRIMARY KEY,
-    chat_id INT NOT NULL REFERENCES chats (id) ON DELETE CASCADE,
-    intention chat_intention NOT NULL DEFAULT 'UNKNOWN',
-    escalated BOOLEAN NOT NULL DEFAULT FALSE,
-    interaction JSONB DEFAULT '[]',
-    received_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
 -- =============================================================
 -- ÍNDICES
 -- =============================================================
@@ -331,11 +309,6 @@ CREATE INDEX idx_chats_phone_created ON chats (phone, created_at DESC);
 CREATE INDEX idx_chats_open ON chats (closed_at)
 WHERE closed_at IS NULL;
 CREATE INDEX idx_chats_customer ON chats (customer_id);
--- rag_chats
-CREATE INDEX idx_rag_chats_chat ON rag_chats (chat_id);
-CREATE INDEX idx_rag_chats_intention ON rag_chats (intention);
-CREATE INDEX idx_rag_chats_escalated ON rag_chats (escalated);
-
 -- =============================================================
 -- FUNCIÓN: updated_at automático
 -- =============================================================

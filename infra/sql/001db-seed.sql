@@ -594,28 +594,4 @@ VALUES (
         CURRENT_TIMESTAMP - INTERVAL '5 days'
     );
 
--- =============================================================
--- RAG_CHATS
--- =============================================================
-
-INSERT INTO
-    rag_chats (
-        chat_id,
-        intention,
-        escalated,
-        received_at
-    )
-VALUES (
-        1,
-        'INFO',
-        FALSE,
-        CURRENT_TIMESTAMP - INTERVAL '5 days'
-    ),
-    (
-        1,
-        'QUOTE',
-        FALSE,
-        CURRENT_TIMESTAMP - INTERVAL '5 days'
-    );
-
 COMMIT;

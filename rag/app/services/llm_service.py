@@ -1,16 +1,13 @@
 from __future__ import annotations
 
-import os
 from typing import Any
 
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
 
-LLM_MODEL = os.getenv("OLLAMA_LLM_MODEL", "gemma3:12b")
+from app.core.config import settings
 
-_llm: ChatOllama | None = None
-_chain: Any = None
 
 SYSTEM_TEMPLATE = """
 Eres el asistente virtual de una agencia de viajes mexicana que vende paquetes todo incluido, cruceros y viajes a la medida por WhatsApp.
@@ -39,27 +36,25 @@ HISTORIAL DE LA CONVERSACION:
 """.strip()
 
 
-def get_chain() -> Any:
-    global _llm, _chain
-    if _chain is not None:
-        return _chain
+class LLMService:
+    def __init__(self) -> None:
+        self._chain: Any | None = None
 
-    _llm = ChatOllama(
-        model=LLM_MODEL,
-        temperature=0.35,
-        top_p=0.9,
-        num_ctx=8192,
-    )
+    def generate(self, prompt_vars: dict[str, str]) -> str:
+        return self._get_chain().invoke(prompt_vars).strip()
 
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", SYSTEM_TEMPLATE),
-        ("user", "{question}"),
-    ])
-
-    _chain = prompt | _llm | StrOutputParser()
-    return _chain
-
-
-def generate(prompt_vars: dict[str, str]) -> str:
-    chain = get_chain()
-    return chain.invoke(prompt_vars).strip()
+    def _get_chain(self) -> Any:
+        if self._chain is not None:
+            return self._chain
+        llm = ChatOllama(
+            model=settings.LLM_MODEL,
+            temperature=0.35,
+            top_p=0.9,
+            num_ctx=8192,
+        )
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", SYSTEM_TEMPLATE),
+            ("user", "{question}"),
+        ])
+        self._chain = prompt | llm | StrOutputParser()
+        return self._chain
