@@ -264,6 +264,18 @@ data class ChatResponse(
     val closedAt: LocalDateTime?
 )
 
+data class WhatsAppInboundRequest(
+    @field:NotBlank val phone: String,
+    @field:NotBlank val message: String
+)
+
+data class RagAssistantResponse(
+    val answer: String,
+    val sources: List<String> = emptyList(),
+    val model: String,
+    @JsonProperty("chat_id") val chatId: Int? = null
+)
+
 data class PaymentAlertResponse(
     val bookingId: Int,
     val customerPhone: String,

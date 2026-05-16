@@ -20,3 +20,41 @@ Este documento definira la especificacion REST del backend conforme avance la Fa
 - Pagos y cobranza
 - Resenas
 - RAG / integraciones internas
+
+## RAG / n8n
+
+### `POST /api/rag/whatsapp/messages`
+
+Entrada prevista para n8n. Recibe un mensaje entrante de WhatsApp, lo reenvia al servicio RAG y retorna la respuesta para que n8n la envie al cliente.
+
+Request:
+
+```json
+{
+  "phone": "+5215511112222",
+  "message": "Quiero opciones para Cancun"
+}
+```
+
+Response:
+
+```json
+{
+  "answer": "...",
+  "sources": [],
+  "model": "gemma3:12b",
+  "chat_id": 1
+}
+```
+
+### `POST /api/rag/chats/{id}/messages`
+
+Agrega mensajes al contexto activo. El backend persiste en PostgreSQL y refresca Redis con TTL configurable.
+
+### `POST /api/rag/chats/{id}/close`
+
+Cierra el chat, persiste `contextSummary` y elimina el contexto activo en Redis. Si no se manda resumen, el backend genera un resumen operativo basico.
+
+### `POST /api/rag/chats/phone/{phone}/close`
+
+Cierra el chat activo por telefono. Pensado para n8n cuando no conserva el `chat_id`.

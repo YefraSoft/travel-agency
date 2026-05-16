@@ -2,6 +2,7 @@ package com.api.travel_api.rag
 
 import com.api.travel_api.api.*
 import com.api.travel_api.booking.BookingService
+import com.api.travel_api.chat.ChatContextCacheService
 import com.api.travel_api.chat.ChatRepository
 import com.api.travel_api.common.NotFoundException
 import com.api.travel_api.customer.CustomerService
@@ -21,7 +22,8 @@ class RagService(
     private val travelRepository: TravelRepository,
     private val customerService: CustomerService,
     private val bookingService: BookingService,
-    private val chatRepository: ChatRepository
+    private val chatRepository: ChatRepository,
+    private val chatContextCacheService: ChatContextCacheService
 ) {
 
     @Transactional(readOnly = true)
@@ -76,7 +78,7 @@ class RagService(
         val customer = request.customerId?.let { customerService.findEntity(it) }
             ?: customerService.findByPhoneOrNull(request.phone)
 
-        return chatRepository.save(
+        val chat = chatRepository.save(
             Chat(
                 customer = customer,
                 phone = request.phone,
@@ -85,7 +87,9 @@ class RagService(
                 chatHistory = request.chatHistory,
                 contextSummary = request.contextSummary,
             )
-        ).toResponse()
+        )
+        chatContextCacheService.put(chat)
+        return chat.toResponse()
     }
 
     @Transactional
@@ -97,7 +101,9 @@ class RagService(
         history.addAll(request.interaction)
         chat.chatHistory = history
 
-        return chatRepository.save(chat).toResponse()
+        val saved = chatRepository.save(chat)
+        chatContextCacheService.append(saved, request.interaction)
+        return saved.toResponse()
     }
 
     @Transactional
@@ -105,11 +111,39 @@ class RagService(
         val chat = chatRepository.findById(chatId)
             .orElseThrow { NotFoundException("Chat not found") }
 
+        return closeChat(chat, request)
+    }
+
+    @Transactional
+    fun closeActiveChat(phone: String, request: ChatCloseRequest): ChatResponse {
+        val chat = chatRepository.findFirstByPhoneAndClosedAtIsNullOrderByCreatedAtDesc(phone)
+            ?: throw NotFoundException("Chat not found")
+
+        return closeChat(chat, request)
+    }
+
+    private fun closeChat(chat: Chat, request: ChatCloseRequest): ChatResponse {
         chat.closedBy = UserRole.IA_AGENT
         chat.closedAt = LocalDateTime.now()
-        chat.contextSummary = request.contextSummary ?: chat.contextSummary
+        chat.contextSummary = request.contextSummary ?: generateClosingSummary(chat)
 
-        return chatRepository.save(chat).toResponse()
+        val saved = chatRepository.save(chat)
+        chatContextCacheService.delete(saved.phone)
+        return saved.toResponse()
+    }
+
+    private fun generateClosingSummary(chat: Chat): String {
+        val totalMessages = chat.chatHistory.size
+        val lastHumanMessage = chat.chatHistory.lastOrNull { it.type.name == "HUMAN" }?.content
+        return buildString {
+            append("Conversacion cerrada con ")
+            append(totalMessages)
+            append(" mensaje(s).")
+            if (!lastHumanMessage.isNullOrBlank()) {
+                append(" Ultima solicitud del cliente: ")
+                append(lastHumanMessage.take(300))
+            }
+        }
     }
 }
 

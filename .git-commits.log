@@ -60,3 +60,11 @@ ES: Este cambio separa rutas FastAPI, validacion del cliente backend, schemas, f
 CHORE(backend): Point local Spring datasource to Docker PostgreSQL.
 EN: This change aligns the backend development profile with the local PostgreSQL container used for endpoint and RAG integration checks.
 ES: Este cambio alinea el perfil local del backend con el contenedor PostgreSQL usado para verificar endpoints e integracion con el RAG.
+
+FEAT(backend): Add Redis-backed active chat context for RAG.
+EN: This change stores active RAG conversations in Redis with a TTL, keeps PostgreSQL as durable storage, and persists a summary when chats are closed.
+ES: Este cambio guarda conversaciones activas del RAG en Redis con TTL, mantiene PostgreSQL como almacenamiento durable y persiste un resumen al cerrar los chats.
+
+FEAT(backend): Add n8n WhatsApp gateway endpoint for RAG.
+EN: This change gives n8n a backend entrypoint that forwards WhatsApp messages to the RAG service and returns a controlled upstream error when RAG is unavailable.
+ES: Este cambio da a n8n un punto de entrada en el backend que reenvia mensajes de WhatsApp al RAG y devuelve un error controlado cuando el RAG no esta disponible.

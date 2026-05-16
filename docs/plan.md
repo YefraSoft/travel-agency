@@ -23,7 +23,7 @@ travel-agency/
 ├── AGENTS.md         # Contexto global mínimo 
 ├── CLAUDE.md         # Contexto global mínimo
 ├── README.md         # Descripción y guía inicial del proyecto
-├── backend/          # Go + Fiber
+├── backend/          # Spring Boot + Kotlin + JPA
 │   └── AGENTS.md     # Contexto específico del backend
 ├── frontend/         # Astro
 │   └── AGENTS.md     # Contexto específico del frontend
@@ -95,6 +95,22 @@ travel-agency/
 
 ---
 
+## Estado Real Actual
+
+> Actualizado 2026-05-15: el backend real del proyecto es Spring Boot + Kotlin + Spring Data JPA, no Go/Fiber/GORM. Las tareas antiguas se conservan como referencia, pero se ejecutan con el stack actual.
+
+- [x] PostgreSQL Docker conectado al backend Spring.
+- [x] Schema y seed de desarrollo ejecutados en PostgreSQL.
+- [x] Tabla redundante `rag_chats` eliminada; el historial vive en `chats`.
+- [x] Redis integrado como contexto activo de chats RAG con TTL configurable.
+- [x] Flujo interno preparado: WhatsApp -> n8n -> backend -> RAG -> Redis/backend.
+- [x] Al cerrar chat se persiste `context_summary` y se limpia Redis.
+- [ ] n8n pendiente de implementación real.
+- [ ] RAG runtime pendiente de verificación local porque faltan dependencias Python (`python3-venv`/`pip`) en el entorno actual.
+- [ ] Jobs de recordatorios pendientes; en Spring deben implementarse con Scheduler/Redis, no con asynq.
+
+---
+
 ## FASE 1 — Diseño e Implementación de la Base de Datos
 >
 > Objetivo: schema completo, migrado y validado antes de escribir un solo endpoint.
@@ -117,13 +133,13 @@ travel-agency/
 
 **Done cuando:** el script corre sin errores en el PostgreSQL del compose y las tablas existen con los datos semilla.
 
-### 1.3 Configurar GORM en el backend
+### 1.3 Configurar persistencia en el backend
 
-- [ ] Instalar dependencias: `gorm.io/gorm`, `gorm.io/driver/postgres`
-- [ ] Crear structs Go que mapeen cada tabla
-- [ ] Verificar conexión y que GORM puede hacer un SELECT básico
+- [x] Configurar Spring Data JPA + PostgreSQL
+- [x] Crear entidades Kotlin que mapean las tablas principales
+- [x] Verificar conexión y que el backend puede hacer SELECT básico
 
-**Done cuando:** el backend arranca, conecta a PostgreSQL y loguea "DB connected" sin errores.
+**Done cuando:** el backend arranca, conecta a PostgreSQL y pasa `./mvnw test` sin errores.
 
 ---
 
@@ -131,14 +147,15 @@ travel-agency/
 >
 > Objetivo: API REST completa para los módulos principales, lista para ser consumida por el frontend y el RAG.
 
-### 2.1 Estructura del proyecto Go
+### 2.1 Estructura del proyecto backend
 
-- [ ] Definir estructura de carpetas interna: `cmd/`, `internal/`, `pkg/`
-- [ ] Configurar Fiber con middlewares base: logger, CORS, recover
-- [ ] Configurar variables de entorno con `godotenv`
-- [ ] Exponer endpoint `/health` y `/metrics` (Prometheus)
+- [x] Definir estructura por módulos Spring/Kotlin
+- [x] Configurar Spring WebMVC
+- [x] Configurar variables vía `application.properties` y entorno
+- [x] Exponer Actuator `/actuator/health`
+- [ ] Exponer `/metrics` Prometheus
 
-**Done cuando:** `GET /health` retorna 200 y `/metrics` expone datos a Prometheus.
+**Done cuando:** `GET /actuator/health` retorna 200 y `/metrics` expone datos a Prometheus.
 
 ### 2.2 Autenticación `[CHAT]`
 
@@ -203,9 +220,10 @@ travel-agency/
 
 **Done cuando:** un cliente sin reserva completada no puede crear reseña (validación en backend).
 
-### 2.8 Jobs asincrónicos (Redis + asynq)
+### 2.8 Jobs asincrónicos (Redis + Spring Scheduler)
 
-- [ ] Configurar asynq worker
+- [x] Configurar Redis para contexto activo de chats RAG
+- [ ] Configurar worker/scheduler Spring para jobs internos
 - [ ] Job: `CheckPaymentDeadlines` — se ejecuta diariamente, genera alertas
 - [ ] Job: `SendPaymentReminder` — envía mensaje a n8n para que dispare WhatsApp
 
@@ -243,7 +261,8 @@ travel-agency/
 - [ ] Implementar intención: consulta de estado de reserva/pago
 - [ ] Implementar intención: pregunta general de destino
 - [ ] Implementar fallback: escalar a agente humano
-- [ ] Registrar todas las conversaciones en BD
+- [x] Registrar conversaciones en BD y Redis como contexto activo
+- [x] Cerrar chat persistiendo resumen en `context_summary`
 
 **Done cuando:** el agente maneja las 5 intenciones en un flujo de conversación completo.
 
@@ -254,6 +273,7 @@ travel-agency/
 - [ ] Crear flujo n8n: RAG responde → n8n envía respuesta por WhatsApp
 - [ ] Crear flujo n8n: job de recordatorios → genera mensaje → WhatsApp
 - [ ] Crear flujo n8n: nueva cotización → notifica al agente
+- [x] Preparar endpoint backend `POST /api/rag/whatsapp/messages` para recibir n8n y reenviar al RAG
 
 **Done cuando:** una conversación de WhatsApp real pasa por n8n → RAG → respuesta en WhatsApp.
 

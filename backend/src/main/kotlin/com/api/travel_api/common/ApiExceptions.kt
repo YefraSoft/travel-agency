@@ -13,6 +13,7 @@ open class ApiException(message: String) : RuntimeException(message)
 class NotFoundException(message: String) : ApiException(message)
 class ConflictException(message: String) : ApiException(message)
 class BusinessException(message: String) : ApiException(message)
+class UpstreamException(message: String) : ApiException(message)
 
 data class ApiError(
     val timestamp: Instant = Instant.now(),
@@ -36,6 +37,10 @@ class ApiExceptionHandler {
     fun business(ex: BusinessException, request: HttpServletRequest) =
         error(HttpStatus.UNPROCESSABLE_ENTITY, ex.message ?: "Business rule violation", request)
 
+    @ExceptionHandler(UpstreamException::class)
+    fun upstream(ex: UpstreamException, request: HttpServletRequest) =
+        error(HttpStatus.BAD_GATEWAY, ex.message ?: "Upstream service unavailable", request)
+
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun validation(ex: MethodArgumentNotValidException, request: HttpServletRequest): ResponseEntity<ApiError> {
         val message = ex.bindingResult.fieldErrors
@@ -54,4 +59,3 @@ class ApiExceptionHandler {
             )
         )
 }
-

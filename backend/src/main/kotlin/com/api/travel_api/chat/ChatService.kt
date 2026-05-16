@@ -8,7 +8,8 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 class ChatService(
-    private val chatRepository: ChatRepository
+    private val chatRepository: ChatRepository,
+    private val chatContextCacheService: ChatContextCacheService
 ) {
 
     @Transactional(readOnly = true)
@@ -19,8 +20,11 @@ class ChatService(
 
     @Transactional(readOnly = true)
     fun getChatByPhone(phone: String): ChatMessageResponse {
+        chatContextCacheService.get(phone)?.let { return it.toMessageResponse() }
+
         val chat = chatRepository.findFirstByPhoneAndClosedAtIsNullOrderByCreatedAtDesc(phone)
             ?: throw NotFoundException("Chat not found")
+        chatContextCacheService.put(chat)
         return chat.toResponse()
     }
 

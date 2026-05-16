@@ -9,7 +9,11 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/api/rag")
 @Tag(name = "RAG and n8n")
-class RagController(private val ragService: RagService, private val chatService: ChatService) {
+class RagController(
+    private val ragService: RagService,
+    private val chatService: ChatService,
+    private val ragGatewayService: RagGatewayService
+) {
 
     @GetMapping("/travels")
     fun travels(): List<RagTravelResponse> = ragService.travels()
@@ -19,6 +23,10 @@ class RagController(private val ragService: RagService, private val chatService:
 
     @PostMapping("/quote")
     fun quote(@Valid @RequestBody request: RagQuoteRequest): BookingResponse = ragService.quote(request)
+
+    @PostMapping("/whatsapp/messages")
+    fun receiveWhatsAppMessage(@Valid @RequestBody request: WhatsAppInboundRequest): RagAssistantResponse =
+        ragGatewayService.sendWhatsAppMessage(request)
 
 
     /*CHAT MANAGEMENT*/
@@ -33,6 +41,10 @@ class RagController(private val ragService: RagService, private val chatService:
     fun closeChat(@PathVariable id: Int, @RequestBody request: ChatCloseRequest): ChatResponse =
         ragService.closeChat(id, request)
 
+    @PostMapping("/chats/phone/{phone}/close")
+    fun closeChatByPhone(@PathVariable phone: String, @RequestBody request: ChatCloseRequest): ChatResponse =
+        ragService.closeActiveChat(phone, request)
+
     @GetMapping("/chats")
     fun getChats(): List<ChatMessageResponse> = chatService.getChats();
 
@@ -40,4 +52,3 @@ class RagController(private val ragService: RagService, private val chatService:
     fun getChatByNumber(@PathVariable phone: String): ChatMessageResponse? = chatService.getChatByPhone(phone);
 
 }
-
