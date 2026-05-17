@@ -1,5 +1,5 @@
 # Build stage
-FROM eclipse-temurin:26-jdk AS build
+FROM eclipse-temurin:24-jdk AS build
 WORKDIR /app
 COPY .mvn/ .mvn/
 COPY mvnw pom.xml ./
@@ -8,7 +8,7 @@ COPY src/ src/
 RUN ./mvnw -DskipTests package -B
 
 # Runtime stage
-FROM eclipse-temurin:26-jre
+FROM eclipse-temurin:24-jre
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080

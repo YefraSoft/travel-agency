@@ -58,6 +58,11 @@ data/
 !rag/data/knowledge/*.md
 uploads/
 
+# Deprecated (legacy code, keep until v1.0 release)
+rag/
+infra/sql/00*.sql
+deprecated/
+
 # Secrets / credentials
 credentials.json
 *.pem

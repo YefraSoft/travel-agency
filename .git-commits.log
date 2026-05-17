@@ -1,70 +1,9 @@
-/*
-COMMIT EXAMPLE:
----
-FEAT(docker-compose.yml): We make a docker file, this file are maked because
-the app moust be runnable in any cloud or local server, then this is a mous
-popular and escalabe solution..
+feat(infra): Fase 1 - Deprecated + Migraciones consolidadas
 
-REFACT(docs): The documen tation are upgrade, this because for new desing requirement
-are chose change the database engine to PostgreSql.
----
-All commits, need an explanation with justification, should be he writing in English and Spanish.
-*/
-
-INFRA(observability): Add Prometheus, Grafana, Loki and Uptime Kuma to the local compose stack.
-EN: This change gives the project a local observability baseline before business services are implemented.
-ES: Este cambio da al proyecto una base local de observabilidad antes de implementar servicios de negocio.
-
-CHORE(projects): Initialize backend, frontend and RAG base projects.
-EN: This change makes each application folder runnable or buildable in an empty baseline state for the next development phases.
-ES: Este cambio deja cada carpeta de aplicacion ejecutable o compilable en un estado base para las siguientes fases de desarrollo.
-
----
-
-FEAT(rag): Add emergency RAG demo service with local demo knowledge.
-EN: This change allows the client to test a working assistant before the full backend and database phases are complete, using Ollama models and a lightweight local vector index.
-ES: Este cambio permite que el cliente pruebe un asistente funcional antes de completar las fases de backend y base de datos, usando modelos de Ollama y un indice vectorial local ligero.
-
-FEAT(frontend): Add temporary React chat route for the RAG demo.
-EN: This change provides a polished client-facing chat at /temp/chat so the RAG can be evaluated quickly from the browser.
-ES: Este cambio agrega un chat presentable para cliente en /temp/chat para evaluar rapidamente el RAG desde el navegador.
-
----
-
-DOCS(database): Add ER diagrams and align the phase 1 schema documentation.
-EN: This change documents the database model in Mermaid and PlantUML, synchronizes the official schema docs, and tightens the initial SQL schema consistency before backend integration.
-ES: Este cambio documenta el modelo de base de datos en Mermaid y PlantUML, sincroniza la documentacion oficial del schema y ajusta la consistencia del SQL inicial antes de integrarlo con el backend.
-
-FIX(backend): Map Kotlin enums to PostgreSQL native enum columns.
-EN: This change keeps Spring Data queries compatible with the existing PostgreSQL enum schema so public and admin endpoints can run without SQL type errors.
-ES: Este cambio mantiene las consultas de Spring Data compatibles con los enums nativos de PostgreSQL para que los endpoints publicos y administrativos funcionen sin errores de tipo SQL.
-
-FIX(backend): Allow RAG chat history JSON deserialization.
-EN: This change lets the RAG chat listing endpoint read persisted chat history from PostgreSQL JSONB, including lowercase message type values saved by external chat clients.
-ES: Este cambio permite que el endpoint de listado de chats del RAG lea el historial persistido desde JSONB de PostgreSQL, incluyendo tipos de mensaje en minusculas guardados por clientes externos.
-
-FEAT(rag): Add JSON and Markdown document loaders.
-EN: This change normalizes backend travel API JSON into RAG-ready documents and adds Markdown/text loaders for local knowledge sources.
-ES: Este cambio normaliza el JSON de viajes del backend en documentos listos para RAG y agrega loaders Markdown/text para fuentes locales de conocimiento.
-
----
-
-REFACTOR(database): Remove redundant rag_chats storage.
-EN: This change keeps RAG conversation persistence in the chats table only, avoiding duplicated message history in development and clean production installs.
-ES: Este cambio mantiene la persistencia de conversaciones del RAG solo en la tabla chats, evitando historial duplicado en desarrollo e instalaciones limpias de produccion.
-
-REFACTOR(rag): Modularize chat orchestration and backend validation.
-EN: This change separates FastAPI routes, backend client validation, schemas, formatters, retrieval and LLM orchestration so backend payloads are checked before use.
-ES: Este cambio separa rutas FastAPI, validacion del cliente backend, schemas, formateadores, recuperacion y orquestacion LLM para revisar los payloads del backend antes de usarlos.
-
-CHORE(backend): Point local Spring datasource to Docker PostgreSQL.
-EN: This change aligns the backend development profile with the local PostgreSQL container used for endpoint and RAG integration checks.
-ES: Este cambio alinea el perfil local del backend con el contenedor PostgreSQL usado para verificar endpoints e integracion con el RAG.
-
-FEAT(backend): Add Redis-backed active chat context for RAG.
-EN: This change stores active RAG conversations in Redis with a TTL, keeps PostgreSQL as durable storage, and persists a summary when chats are closed.
-ES: Este cambio guarda conversaciones activas del RAG en Redis con TTL, mantiene PostgreSQL como almacenamiento durable y persiste un resumen al cerrar los chats.
-
-FEAT(backend): Add n8n WhatsApp gateway endpoint for RAG.
-EN: This change gives n8n a backend entrypoint that forwards WhatsApp messages to the RAG service and returns a controlled upstream error when RAG is unavailable.
-ES: Este cambio da a n8n un punto de entrada en el backend que reenvia mensajes de WhatsApp al RAG y devuelve un error controlado cuando el RAG no esta disponible.
+- Crear deprecated/rag-python/ y deprecated/sql-legacy/
+- Mover Python RAG y SQL legacy a deprecated/
+- Agregar rag/, infra/sql/00*.sql, deprecated/ al .gitignore
+- Reemplazar V1__db_schema.sql (ENUMs) con V1__full_schema.sql (VARCHAR)
+- Crear V2__seed_data.sql con bcrypt hashes reales
+- Corregir Java version: pom.xml 23→24, Dockerfile 26→24 (Kotlin max)
+- Limpiar .env y actualizar .env.example con RAG_API_KEY y frontend vars
