@@ -11,7 +11,6 @@ services:
       - "${POSTGRES_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./infra/sql:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
@@ -32,6 +31,96 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: travel_agency_backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_TIMEOUT: 2s
+      RAG_CHAT_REDIS_TTL_HOURS: 24
+      RAG_SERVICE_URL: http://agent:3000
+      SPRING_JPA_SHOW_SQL: "false"
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
+      SPRING_FLYWAY_BASELINE_VERSION: "0"
+    ports:
+      - "${SERVER_PORT}:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/8080' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  agent:
+    build:
+      context: ./agent
+      dockerfile: Dockerfile
+    container_name: travel_agency_agent
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+      BACKEND_URL: http://backend:8080
+      PORT: 3000
+      CORS_ORIGINS: "*"
+      CHUNK_SIZE: 500
+      CHUNK_OVERLAP: 50
+      CHROMA_COLLECTION: knowledge-base
+    ports:
+      - "3002:3000"
+    volumes:
+      - agent_chroma_data:/app/chromadb
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: travel_agency_n8n
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+      agent:
+        condition: service_healthy
+    environment:
+      - N8N_SECURE_COOKIE=false
+      - GENERIC_TIMEZONE=America/Mexico_City
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - BACKEND_URL=http://backend:8080
+      - AGENT_URL=http://agent:3000
+    ports:
+      - "${N8N_PORT}:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./infra/n8n/workflows:/workflows:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5678/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   adminer:
     image: adminer:4
@@ -97,6 +186,8 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  agent_chroma_data:
+  n8n_data:
   prometheus_data:
   loki_data:
   grafana_data:

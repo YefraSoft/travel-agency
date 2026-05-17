@@ -1,0 +1,112 @@
+{
+  "name": "Chat Cleanup (Cron)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minuteInterval": 5
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule (5 min)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 400]
+    },
+    {
+      "parameters": {
+        "command": "SCAN 0 MATCH lock:* COUNT 100"
+      },
+      "id": "scan-locks",
+      "name": "Scan Locks (Redis)",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [460, 400]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "result",
+        "options": {}
+      },
+      "id": "split-locks",
+      "name": "Split Locks",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [680, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "const key = $json;\nconst phone = key.replace('lock:', '');\nreturn [{ json: { phone, lockKey: key } }];"
+      },
+      "id": "extract-phone",
+      "name": "Extract Phone",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.AGENT_URL }}/api/chat/summarize",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "phone",
+              "value": "={{ $json.phone }}"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "id": "call-summarize",
+      "name": "Call Summarize",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 400],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "command": "DEL msg:{{ $json.phone }}\nDEL lock:{{ $json.phone }}"
+      },
+      "id": "cleanup-buffer",
+      "name": "Cleanup Buffer",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [1340, 400]
+    }
+  ],
+  "connections": {
+    "Schedule (5 min)": {
+      "main": [[{ "node": "Scan Locks (Redis)", "type": "main", "index": 0 }]]
+    },
+    "Scan Locks (Redis)": {
+      "main": [[{ "node": "Split Locks", "type": "main", "index": 0 }]]
+    },
+    "Split Locks": {
+      "main": [[{ "node": "Extract Phone", "type": "main", "index": 0 }]]
+    },
+    "Extract Phone": {
+      "main": [[{ "node": "Call Summarize", "type": "main", "index": 0 }]]
+    },
+    "Call Summarize": {
+      "main": [[{ "node": "Cleanup Buffer", "type": "main", "index": 0 }]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true
+  },
+  "versionId": "1",
+  "meta": {},
+  "tags": []
+}
