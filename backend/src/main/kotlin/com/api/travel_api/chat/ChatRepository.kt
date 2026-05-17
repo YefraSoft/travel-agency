@@ -7,4 +7,5 @@ interface ChatRepository : JpaRepository<Chat, Int> {
     fun findFirstByPhoneAndClosedAtIsNullOrderByCreatedAtDesc(phone: String): Chat?
     fun findByPhoneOrderByCreatedAtDesc(phone: String): List<Chat>
     fun findByPhone(phone: String): Chat?
+    fun findByClosedAtIsNullOrderByCreatedAtDesc(): List<Chat>
 }

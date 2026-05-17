@@ -1,12 +1,11 @@
-feat(infra): Fase 2 - API_KEY + Seguridad interna
+feat(backend): Fase 3 - Escalaciones + endpoints faltantes
 
-- Crear middleware AuthMiddleware en agent que valida X-API-Key
-- Proteger endpoints /api/chat, /api/chat/summarize, /api/rag/* con API_KEY
-- Mantener /api/health público para Docker healthcheck
-- Agregar RAG_API_KEY a .env, .env.example (agent y root)
-- Agregar header X-API-Key al nodo "Call Agent" en workflow n8n
-- Backend RagGatewayService envía X-API-Key via defaultHeaders
-- application.properties: rag.api.key y rag.service.url actualizados
-- docker-compose: RAG_API_KEY en agent, n8n, backend
-- Fix model name duplicado: LlmService retorna "gemini-2.5-flash" (no "gemini-gemini-...")
-- Agregar X-API-Key a allowedHeaders de CORS
+- Crear entity Escalation con campos: chat_id, phone, reason, client_question, context, suggested_action, status, attended_by, attended_at, resolved_at
+- Crear EscalationRepository con findByStatusOrderByCreatedAtDesc y findByPhoneOrderByCreatedAtDesc
+- Crear EscalationService con create, listPending, getById, updateStatus
+- Crear EscalationController: POST /api/rag/escalations, GET /api/rag/escalations/pending, GET /api/rag/escalations/{id}, PATCH /api/rag/escalations/{id}/status
+- Agregar DTOs: EscalationRequest, EscalationResponse, EscalationStatusRequest
+- Migracion Flyway V3__add_escalations.sql
+- Fix chat_id en Agent: ahora crea/obtiene chat del backend antes de responder
+- Agregar GET /api/rag/chats/active en RagController y ChatService
+- Agregar findByClosedAtIsNullOrderByCreatedAtDesc en ChatRepository

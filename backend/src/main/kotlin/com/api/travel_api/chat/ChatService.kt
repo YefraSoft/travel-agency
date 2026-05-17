@@ -28,6 +28,12 @@ class ChatService(
         return chat.toResponse()
     }
 
+    @Transactional(readOnly = true)
+    fun getActiveChats(): List<ChatMessageResponse> {
+        return chatRepository.findByClosedAtIsNullOrderByCreatedAtDesc()
+            .map { it.toResponse() }
+    }
+
     fun Chat.toResponse() = ChatMessageResponse(
         id = id!!,
         customerId = customer?.id,

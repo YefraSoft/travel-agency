@@ -51,4 +51,7 @@ class RagController(
     @GetMapping("/chats/{phone}")
     fun getChatByNumber(@PathVariable phone: String): ChatMessageResponse? = chatService.getChatByPhone(phone);
 
+    @GetMapping("/chats/active")
+    fun getActiveChats(): List<ChatMessageResponse> = chatService.getActiveChats();
+
 }

@@ -283,3 +283,32 @@ data class PaymentAlertResponse(
     val pendingBalance: BigDecimal,
     val payLimit: LocalDate?
 )
+
+data class EscalationRequest(
+    val chatId: Int? = null,
+    @field:NotBlank val phone: String,
+    @field:NotBlank val reason: String,
+    @field:NotBlank val clientQuestion: String,
+    val context: String? = null,
+    val suggestedAction: String? = null
+)
+
+data class EscalationResponse(
+    val id: Int,
+    val chatId: Int?,
+    val phone: String,
+    val reason: String,
+    val clientQuestion: String,
+    val context: String?,
+    val suggestedAction: String?,
+    val status: String,
+    val attendedBy: String?,
+    val attendedAt: LocalDateTime?,
+    val resolvedAt: LocalDateTime?,
+    val createdAt: LocalDateTime
+)
+
+data class EscalationStatusRequest(
+    @field:NotBlank val status: String,
+    val attendedBy: String? = null
+)

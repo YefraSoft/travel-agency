@@ -41,7 +41,19 @@ chatRouter.post("/chat", async (req: Request, res: Response) => {
       console.warn("[/api/chat] Failed to fetch travels:", e);
     }
 
-    // 2. Escalation check — antes de generar respuesta
+    // 2. Get or create chat in backend to obtain real chat_id
+    let chatId: number | null = null;
+    try {
+      let activeChat = await backendClient.getActiveChat(phone);
+      if (!activeChat) {
+        activeChat = await backendClient.createChat(phone);
+      }
+      chatId = activeChat?.id ?? null;
+    } catch (e) {
+      console.warn("[/api/chat] Failed to get/create chat:", e);
+    }
+
+    // 3. Escalation check — antes de generar respuesta
     const contextSnippet = travels
       .slice(0, 3)
       .map((t: any) => `${t.name} a ${t.destination}`)
@@ -49,7 +61,7 @@ chatRouter.post("/chat", async (req: Request, res: Response) => {
 
     const escalation = await escalationTool.evaluate(message, contextSnippet);
 
-    // 3. Si hay escalación, retornar inmediatamente
+    // 4. Si hay escalación, retornar inmediatamente
     if (escalation) {
       res.json({
         answer: escalation.reason === "payment"
@@ -59,7 +71,7 @@ chatRouter.post("/chat", async (req: Request, res: Response) => {
             : "Tu solicitud requiere atención especializada. Te transferiré con un asesor.",
         sources: [],
         model: "gemini-2.5-flash",
-        chat_id: null,
+        chat_id: chatId,
         escalate: true,
         escalation: {
           reason: escalation.reason,
@@ -71,14 +83,14 @@ chatRouter.post("/chat", async (req: Request, res: Response) => {
       return;
     }
 
-    // 4. RAG generation
+    // 5. RAG generation
     const result = await pipeline.queryWithRag(message, travels, history);
 
     res.json({
       answer: result.answer,
       sources: [],
       model: result.model,
-      chat_id: null,
+      chat_id: chatId,
       escalate: false,
     });
   } catch (error) {
