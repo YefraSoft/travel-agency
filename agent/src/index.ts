@@ -1,5 +1,5 @@
 import { createApp } from "./App/App";
-import { SERVER_CONFIG } from "./config/AppConfing";
+import { SERVER_CONFIG } from "./config/AppConfig";
 
 const app = createApp();
 

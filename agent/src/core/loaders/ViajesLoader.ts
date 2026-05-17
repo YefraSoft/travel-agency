@@ -1,5 +1,5 @@
 import type { Document } from "@langchain/core/documents";
-import { ViajesResponseSchema, type Viaje } from "../../utils/shcemas";
+import { RagTravelsArraySchema, type RagTravel } from "../../utils/schemas";
 
 /**
  * Convierte los viajes de tu backend en Documents para el vector store.
@@ -12,14 +12,24 @@ export class ViajesLoader {
     this.apiUrl = apiUrl;
   }
 
-  private viajeToDocument(viaje: Viaje): Document {
+  private travelToDocument(travel: RagTravel): Document {
+    const packagesText = travel.availablePackages
+      .filter((p) => p.active)
+      .map(
+        (p) =>
+          `Paquete "${p.name}": ${p.pricePerPerson} ${p.currency}, ${p.personsIncluded} personas incluidas, ${p.availableSpots ?? "?"} lugares disponibles`
+      )
+      .join(". ");
+
     const pageContent = [
-      `Viaje de ${viaje.origen} a ${viaje.destino}.`,
-      `Salida: ${new Date(viaje.fechaSalida).toLocaleString("es-MX")}.`,
-      `Llegada: ${new Date(viaje.fechaLlegada).toLocaleString("es-MX")}.`,
-      `Precio: $${viaje.precio} MXN.`,
-      `Asientos disponibles: ${viaje.asientosDisponibles}.`,
-      viaje.descripcion ? `Descripción: ${viaje.descripcion}.` : "",
+      `Viaje ${travel.type} a ${travel.destination}${travel.origin ? ` desde ${travel.origin}` : ""}.`,
+      `Nombre: ${travel.name}.`,
+      travel.minPrice != null
+        ? `Precio desde: ${travel.minPrice} ${travel.currency ?? "MXN"}.`
+        : "",
+      travel.availablePackages.length > 0
+        ? `Paquetes disponibles: ${packagesText}.`
+        : "",
     ]
       .filter(Boolean)
       .join(" ");
@@ -28,12 +38,14 @@ export class ViajesLoader {
       pageContent,
       metadata: {
         source: "backend-viajes",
-        viajeId: viaje.id,
-        origen: viaje.origen,
-        destino: viaje.destino,
-        precio: viaje.precio,
-        asientosDisponibles: viaje.asientosDisponibles,
-        fechaSalida: viaje.fechaSalida,
+        travelId: travel.id,
+        name: travel.name,
+        slug: travel.slug,
+        type: travel.type,
+        destination: travel.destination,
+        origin: travel.origin,
+        minPrice: travel.minPrice,
+        currency: travel.currency,
       },
     };
   }
@@ -43,18 +55,18 @@ export class ViajesLoader {
 
     if (!response.ok) {
       throw new Error(
-        `[ViajesLoader] Error al obtener viajes: ${response.status} ${response.statusText}`,
+        `[ViajesLoader] Error al obtener viajes: ${response.status} ${response.statusText}`
       );
     }
 
     const raw = await response.json();
 
     // Zod valida y parsea — lanza si la forma no coincide
-    const parsed = ViajesResponseSchema.parse(raw);
+    const travels = RagTravelsArraySchema.parse(raw);
 
-    const docs = parsed.data.map((v) => this.viajeToDocument(v));
+    const docs = travels.map((t) => this.travelToDocument(t));
     console.log(
-      `[ViajesLoader] ${docs.length} viajes convertidos a documentos.`,
+      `[ViajesLoader] ${docs.length} viajes convertidos a documentos.`
     );
     return docs;
   }

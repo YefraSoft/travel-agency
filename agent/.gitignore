@@ -1,6 +1,9 @@
 # dependencies (bun install)
 node_modules
 
+chromabd
+chroma
+
 # output
 out
 dist

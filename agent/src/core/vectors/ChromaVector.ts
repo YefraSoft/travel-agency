@@ -2,7 +2,7 @@ import { Chroma } from "@langchain/community/vectorstores/chroma";
 import type { Document } from "@langchain/core/documents";
 import type { Embeddings } from "@langchain/core/embeddings";
 import type { IVectorStore, SearchResult } from "../../utils/interfaces";
-import { VECTOR_STORE_CONFIG } from "../../config/AppConfing";
+import { VECTOR_STORE_CONFIG } from "../../config/AppConfig";
 import { embeddings } from "../Models";
 
 export class ChromaVectorStore implements IVectorStore {

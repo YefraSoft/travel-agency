@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from "express";
 import { RagPipeline } from "../../core/PipeLine";
 import { DocumentLoader } from "../../core/loaders/DocumentLoader";
 import { ChromaVectorStore } from "../../core/vectors/ChromaVector";
-import { RagQueryBodySchema } from "../../utils/shcemas";
+import { RagQueryBodySchema } from "../../utils/schemas";
 
 const ragRouter = Router();
 
@@ -12,7 +12,7 @@ const pipeline = new RagPipeline(
 );
 
 const VIAJES_API_URL =
-  process.env.VIAJES_API_URL ?? "http://localhost:8080/api/travels";
+  process.env.VIAJES_API_URL ?? "http://localhost:8080/api/rag/travels";
 
 /** POST /api/rag/ingest — carga docs del filesystem */
 ragRouter.post("/ingest", async (_req: Request, res: Response) => {
@@ -30,7 +30,7 @@ ragRouter.post("/ingest", async (_req: Request, res: Response) => {
 
 /** POST /api/rag/ingest/viajes — actualiza contexto con viajes del backend */
 ragRouter.post("/ingest/viajes", async (req: Request, res: Response) => {
-  const apiUrl = (req.body as { apiUrl?: string }).apiUrl ?? VIAJES_API_URL;
+  const apiUrl = (req.body as { apiUrl?: string })?.apiUrl ?? VIAJES_API_URL;
   try {
     await pipeline.ingestViajes(apiUrl);
     res.json({ success: true, message: "Contexto de viajes actualizado." });

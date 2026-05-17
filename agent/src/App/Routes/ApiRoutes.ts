@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from "express";
-import { llm } from "../../core/Models";
+import { llmService } from "../../core/llm/LlmService";
 import type { HealthResponse } from "../../utils/types";
+import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 
 const apiRouter = Router();
 
@@ -17,14 +18,11 @@ apiRouter.get("/health", (_req: Request, res: Response) => {
 /** GET /api/translate — demo LLM call */
 apiRouter.get("/translate", async (_req: Request, res: Response) => {
   try {
-    const aiMsg = await llm.invoke([
-      [
-        "system",
-        "You are a helpful assistant that translates English to French. Translate the user sentence.",
-      ],
-      ["human", "I love programming."],
+    const result = await llmService.generate([
+      new SystemMessage("You are a helpful assistant that translates English to French. Translate the user sentence."),
+      new HumanMessage("I love programming."),
     ]);
-    res.json({ success: true, result: aiMsg });
+    res.json({ success: true, result });
   } catch (error) {
     console.error("LLM error:", error);
     res.status(500).json({ success: false, error: String(error) });

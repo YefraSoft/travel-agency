@@ -5,7 +5,7 @@ import { CSVLoader } from "@langchain/community/document_loaders/fs/csv";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import type { Document } from "@langchain/core/documents";
 import type { FileLoaderMap, SplitterConfig } from "../../utils/types";
-import { SPLITTER_CONFIG } from "../../config/AppConfing";
+import { SPLITTER_CONFIG } from "../../config/AppConfig";
 
 const DEFAULT_FILE_LOADERS: FileLoaderMap = {
   ".json": (path: string) => new JSONLoader(path, "/json"),

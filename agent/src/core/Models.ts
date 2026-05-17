@@ -1,13 +1,10 @@
-import { ChatOllama, OllamaEmbeddings } from "@langchain/ollama";
-import { ChatGoogle,  } from "@langchain/google";
-import { LLM_CONFIG, EMBEDDINGS_CONFIG } from "../config/AppConfing";
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
+import { EMBEDDINGS_CONFIG } from "../config/AppConfig";
 
 export const embeddings = new GoogleGenerativeAIEmbeddings({
-  model: "text-embedding-004"
+  model: EMBEDDINGS_CONFIG.model,
 });
 
-export const llm = new ChatGoogle("gemini-2.5-flash");
 /*
 export const llm = new ChatOllama({
   model: LLM_CONFIG.model,

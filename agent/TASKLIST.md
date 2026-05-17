@@ -88,35 +88,35 @@ WhatsApp → n8n (buffer 1min inactividad) → POST /api/chat → Agente TS
 
 ## Fase 3: LLM Service con fallback Gemini → Ollama
 
-- [ ] **3.1** Crear `src/core/llm/LlmService.ts`
-- [ ] **3.2** Implementar clase `LlmService`:
+- [x] **3.1** Crear `src/core/llm/LlmService.ts`
+- [x] **3.2** Implementar clase `LlmService`:
   - Primary: `ChatGoogle("gemini-2.5-flash")`
   - Fallback: `ChatOllama({ model: "gemma3:12b", temperature: 0.35 })`
   - Método `generate(messages)`: intenta Gemini, si falla → Ollama
   - Retorna `{ content: string, model: string }`
-- [ ] **3.3** Actualizar `src/core/Models.ts`:
+- [x] **3.3** Actualizar `src/core/Models.ts`:
   - Exportar solo instancias base de embeddings
   - Mover lógica de LLM a `LlmService`
-- [ ] **3.4** Configurar variables de entorno para Ollama fallback en `.env`
+- [x] **3.4** Configurar variables de entorno para Ollama fallback en `.env`
 
 ---
 
 ## Fase 4: Prompt Builder
 
-- [ ] **4.1** Crear `src/core/llm/PromptBuilder.ts`
-- [ ] **4.2** Definir system prompt (español, agente WhatsApp agencia mexicana):
+- [x] **4.1** Crear `src/core/llm/PromptBuilder.ts`
+- [x] **4.2** Definir system prompt (español, agente WhatsApp agencia mexicana):
   - Siempre responder en español
   - Usar solo información proporcionada (travels + context)
   - Nunca procesar pagos — redirigir al agente humano
   - Preguntar datos necesarios para cotizar (destino, fechas, personas)
   - Si no sabe algo, invocar EscalationTool
   - Si el cliente menciona un pago, invocar EscalationTool
-- [ ] **4.3** Implementar `buildRagPrompt(question, travels, contexts, history?)`:
+- [x] **4.3** Implementar `buildRagPrompt(question, travels, contexts, history?)`:
   - Formatea travels en texto legible
   - Inyecta contexto del vector store
   - Incluye historial si existe
   - Retorna array de mensajes para el LLM
-- [ ] **4.4** Implementar `buildSummaryPrompt(history)`:
+- [x] **4.4** Implementar `buildSummaryPrompt(history)`:
   - Instrucciones para generar resumen estructurado
   - Extraer: intereses, acciones, pendientes
 
@@ -124,14 +124,14 @@ WhatsApp → n8n (buffer 1min inactividad) → POST /api/chat → Agente TS
 
 ## Fase 5: Reescribir Pipeline RAG
 
-- [ ] **5.1** Reescribir `src/core/PipeLine.ts`
-- [ ] **5.2** Nuevo método `query(question, travels?, contexts?, history?)`:
+- [x] **5.1** Reescribir `src/core/PipeLine.ts`
+- [x] **5.2** Nuevo método `queryWithRag(question, travels, history?, k)`:
   - `PromptBuilder.buildRagPrompt()` → `LlmService.generate()` → `{ answer, model }`
-- [ ] **5.3** Mantener métodos de ingestión:
+- [x] **5.3** Mantener métodos de ingestión:
   - `ingestFiles()` — documentos del filesystem
   - `ingestViajes()` — travels del backend
   - `ingestDocs()` — documentos arbitrarios
-- [ ] **5.4** Agregar método `generateSummary(history)`:
+- [x] **5.4** Agregar método `generateSummary(history)`:
   - Usa `PromptBuilder.buildSummaryPrompt()` → `LlmService.generate()`
 
 ---
