@@ -10,10 +10,16 @@ import org.springframework.web.client.RestClientException
 
 @Service
 class RagGatewayService(
-    @Value("\${rag.service.url:http://127.0.0.1:3000/api}") ragServiceUrl: String
+    @Value("\${rag.service.url:http://agent:3000}") ragServiceUrl: String,
+    @Value("\${rag.api.key:}") private val ragApiKey: String
 ) {
     private val ragClient: RestClient = RestClient.builder()
         .baseUrl(ragServiceUrl.trimEnd('/'))
+        .defaultHeaders { headers ->
+            if (ragApiKey.isNotBlank()) {
+                headers.set("X-API-Key", ragApiKey)
+            }
+        }
         .build()
 
     fun sendWhatsAppMessage(request: WhatsAppInboundRequest): RagAssistantResponse = try {

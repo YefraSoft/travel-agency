@@ -52,6 +52,7 @@ services:
       SPRING_DATA_REDIS_TIMEOUT: 2s
       RAG_CHAT_REDIS_TTL_HOURS: 24
       RAG_SERVICE_URL: http://agent:3000
+      RAG_API_KEY: ${RAG_API_KEY}
       SPRING_JPA_SHOW_SQL: "false"
       SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
       SPRING_FLYWAY_BASELINE_VERSION: "0"
@@ -75,6 +76,7 @@ services:
         condition: service_healthy
     environment:
       GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+      RAG_API_KEY: ${RAG_API_KEY}
       BACKEND_URL: http://backend:8080
       PORT: 3000
       CORS_ORIGINS: "*"
@@ -110,6 +112,7 @@ services:
       - REDIS_PORT=6379
       - BACKEND_URL=http://backend:8080
       - AGENT_URL=http://agent:3000
+      - RAG_API_KEY=${RAG_API_KEY}
     ports:
       - "${N8N_PORT}:5678"
     volumes:

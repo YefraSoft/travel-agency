@@ -1,9 +1,12 @@
-feat(infra): Fase 1 - Deprecated + Migraciones consolidadas
+feat(infra): Fase 2 - API_KEY + Seguridad interna
 
-- Crear deprecated/rag-python/ y deprecated/sql-legacy/
-- Mover Python RAG y SQL legacy a deprecated/
-- Agregar rag/, infra/sql/00*.sql, deprecated/ al .gitignore
-- Reemplazar V1__db_schema.sql (ENUMs) con V1__full_schema.sql (VARCHAR)
-- Crear V2__seed_data.sql con bcrypt hashes reales
-- Corregir Java version: pom.xml 23→24, Dockerfile 26→24 (Kotlin max)
-- Limpiar .env y actualizar .env.example con RAG_API_KEY y frontend vars
+- Crear middleware AuthMiddleware en agent que valida X-API-Key
+- Proteger endpoints /api/chat, /api/chat/summarize, /api/rag/* con API_KEY
+- Mantener /api/health público para Docker healthcheck
+- Agregar RAG_API_KEY a .env, .env.example (agent y root)
+- Agregar header X-API-Key al nodo "Call Agent" en workflow n8n
+- Backend RagGatewayService envía X-API-Key via defaultHeaders
+- application.properties: rag.api.key y rag.service.url actualizados
+- docker-compose: RAG_API_KEY en agent, n8n, backend
+- Fix model name duplicado: LlmService retorna "gemini-2.5-flash" (no "gemini-gemini-...")
+- Agregar X-API-Key a allowedHeaders de CORS

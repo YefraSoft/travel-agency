@@ -3,6 +3,7 @@ import cors from "cors";
 import { apiRouter } from "./Routes/ApiRoutes";
 import { ragRouter } from "./Routes/RagRoutes";
 import { chatRouter } from "./Routes/ChatRoutes";
+import { authMiddleware } from "../middleware/AuthMiddleware";
 
 export function createApp() {
   const app = express();
@@ -14,7 +15,7 @@ export function createApp() {
   app.use(cors({
     origin: corsOrigins === "*" ? "*" : corsOrigins,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-API-Key"],
   }));
 
   // Logging middleware básico
@@ -28,9 +29,12 @@ export function createApp() {
   });
 
   // Mount routers
+  // /api/health es público (necesario para Docker healthcheck)
   app.use("/api", apiRouter);
-  app.use("/api/rag", ragRouter);
-  app.use("/api", chatRouter);
+
+  // Endpoints protegidos con API_KEY
+  app.use("/api/rag", authMiddleware, ragRouter);
+  app.use("/api", authMiddleware, chatRouter);
 
   return app;
 }

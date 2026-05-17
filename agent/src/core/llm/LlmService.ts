@@ -30,7 +30,7 @@ export class LlmService {
     const response = await this.getOrCreateGemini().invoke(messages);
     return {
       content: response.content as string,
-      model: `gemini-${LLM_CONFIG.model}`,
+      model: LLM_CONFIG.model,
     };
   }
 }

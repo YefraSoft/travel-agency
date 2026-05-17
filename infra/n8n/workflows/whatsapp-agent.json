@@ -136,6 +136,14 @@
             }
           ]
         },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.RAG_API_KEY }}"
+            }
+          ]
+        },
         "options": {
           "allowUnauthorizedCerts": true
         }
