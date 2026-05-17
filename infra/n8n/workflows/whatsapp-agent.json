@@ -117,6 +117,16 @@
     },
     {
       "parameters": {
+        "jsCode": "const raw = $('Get Chat History').first().json;\nconst history = (raw.chatHistory || []).map(msg => ({\n  role: msg.type === 'HUMAN' ? 'user' : 'assistant',\n  content: msg.content\n}));\nreturn [{ json: { chatHistory: history, phone: $('Join Messages').first().json.phone, message: $('Join Messages').first().json.message } }];"
+      },
+      "id": "transform-history",
+      "name": "Transform Chat History",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1900, 200]
+    },
+    {
+      "parameters": {
         "method": "POST",
         "url": "={{ $env.AGENT_URL }}/api/chat",
         "sendBody": true,
@@ -152,7 +162,7 @@
       "name": "Call Agent",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2000, 200]
+      "position": [2100, 200]
     },
     {
       "parameters": {
@@ -179,7 +189,54 @@
       "name": "Check Escalate",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [2220, 200]
+      "position": [2320, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.BACKEND_URL }}/api/rag/escalations",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "phone",
+              "value": "={{ $json.phone }}"
+            },
+            {
+              "name": "reason",
+              "value": "={{ $json.escalation?.reason ?? 'unresolved' }}"
+            },
+            {
+              "name": "clientQuestion",
+              "value": "={{ $json.escalation?.clientQuestion ?? $json.message }}"
+            },
+            {
+              "name": "context",
+              "value": "={{ $json.escalation?.context ?? '' }}"
+            },
+            {
+              "name": "suggestedAction",
+              "value": "={{ $json.escalation?.suggestedAction ?? '' }}"
+            }
+          ]
+        },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.RAG_API_KEY }}"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "id": "register-escalation",
+      "name": "Register Escalation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2540, 400]
     },
     {
       "parameters": {
@@ -191,7 +248,7 @@
       "name": "Send Response",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [2440, 0]
+      "position": [2540, 0]
     },
     {
       "parameters": {
@@ -203,7 +260,7 @@
       "name": "Send Escalation",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [2440, 400]
+      "position": [2760, 400]
     },
     {
       "parameters": {
@@ -213,7 +270,7 @@
       "name": "Cleanup Redis",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
-      "position": [2440, 200],
+      "position": [2760, 200],
       "executeOnce": true,
       "alwaysRun": true
     },
@@ -252,6 +309,9 @@
       "main": [[{ "node": "Get Chat History", "type": "main", "index": 0 }]]
     },
     "Get Chat History": {
+      "main": [[{ "node": "Transform Chat History", "type": "main", "index": 0 }]]
+    },
+    "Transform Chat History": {
       "main": [[{ "node": "Call Agent", "type": "main", "index": 0 }]]
     },
     "Call Agent": {
@@ -259,9 +319,12 @@
     },
     "Check Escalate": {
       "main": [
-        [{ "node": "Send Escalation", "type": "main", "index": 0 }],
+        [{ "node": "Register Escalation", "type": "main", "index": 0 }],
         [{ "node": "Send Response", "type": "main", "index": 0 }]
       ]
+    },
+    "Register Escalation": {
+      "main": [[{ "node": "Send Escalation", "type": "main", "index": 0 }]]
     },
     "Send Response": {
       "main": [[{ "node": "Cleanup Redis", "type": "main", "index": 0 }]]
@@ -276,7 +339,7 @@
     "saveManualExecutions": true,
     "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "1",
+  "versionId": "2",
   "meta": {
     "templateCredsSetupCompleted": true
   },

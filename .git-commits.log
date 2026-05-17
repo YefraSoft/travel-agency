@@ -1,11 +1,9 @@
-feat(backend): Fase 3 - Escalaciones + endpoints faltantes
+feat(infra): Fase 5 - n8n + Integración final
 
-- Crear entity Escalation con campos: chat_id, phone, reason, client_question, context, suggested_action, status, attended_by, attended_at, resolved_at
-- Crear EscalationRepository con findByStatusOrderByCreatedAtDesc y findByPhoneOrderByCreatedAtDesc
-- Crear EscalationService con create, listPending, getById, updateStatus
-- Crear EscalationController: POST /api/rag/escalations, GET /api/rag/escalations/pending, GET /api/rag/escalations/{id}, PATCH /api/rag/escalations/{id}/status
-- Agregar DTOs: EscalationRequest, EscalationResponse, EscalationStatusRequest
-- Migracion Flyway V3__add_escalations.sql
-- Fix chat_id en Agent: ahora crea/obtiene chat del backend antes de responder
-- Agregar GET /api/rag/chats/active en RagController y ChatService
-- Agregar findByClosedAtIsNullOrderByCreatedAtDesc en ChatRepository
+- Agregar nodo "Transform Chat History" en workflow n8n: convierte HUMAN/AI → user/assistant
+- Agregar nodo "Register Escalation" en workflow n8n: POST /api/rag/escalations con X-API-Key
+- Crear import.sh script para importar workflows automaticamente en n8n
+- Crear container n8n-workflow-import que importa workflows via API al iniciar
+- Workflow whatsapp-agent.json actualizado con nuevos nodos y conexiones
+- Header X-API-Key ya configurado en Call Agent (Fase 2)
+- Phone ya configurado en body del Call Agent
