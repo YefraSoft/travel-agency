@@ -10,7 +10,7 @@ import org.springframework.web.client.RestClientException
 
 @Service
 class RagGatewayService(
-    @Value("\${rag.service.url:http://127.0.0.1:8001}") ragServiceUrl: String
+    @Value("\${rag.service.url:http://127.0.0.1:3000/api}") ragServiceUrl: String
 ) {
     private val ragClient: RestClient = RestClient.builder()
         .baseUrl(ragServiceUrl.trimEnd('/'))

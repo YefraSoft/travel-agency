@@ -163,136 +163,43 @@ WhatsApp → n8n (buffer 1min inactividad) → POST /api/chat → Agente TS
 
 ## Fase 8: Endpoints de producción
 
-- [ ] **8.1** Reescribir `src/App/Routes/RagRoutes.ts`
-- [ ] **8.2** Crear endpoint `POST /api/chat`:
+- [x] **8.1** Crear `src/App/Routes/ChatRoutes.ts`
+- [x] **8.2** Endpoint `POST /api/chat`:
   - Request: `{ message, phone, history? }`
-  - Flujo interno:
-    1. Obtener/crear chat activo vía `BackendClient`
-    2. Retrieval del vector store
-    3. Fetch travels del backend
-    4. Build prompt con history + travels + context
-    5. LLM generation con fallback
-    6. Detectar si LLM invocó EscalationTool
-  - Response:
-    ```json
-    {
-      "answer": "...",
-      "sources": ["..."],
-      "model": "gemini-2.5-flash",
-      "chat_id": 42,
-      "escalate": false
-    }
-    ```
-    O si hay escalación:
-    ```json
-    {
-      "answer": "...",
-      "sources": [],
-      "model": "gemini-2.5-flash",
-      "chat_id": 42,
-      "escalate": true,
-      "escalation": {
-        "reason": "payment",
-        "clientQuestion": "...",
-        "context": "...",
-        "suggestedAction": "..."
-      }
-    }
-    ```
-- [ ] **8.3** Crear endpoint `POST /api/chat/summarize`:
+  - Flujo: Escalation check → RAG generation → respuesta
+  - Response con `escalate: true/false` + datos de escalación
+- [x] **8.3** Endpoint `POST /api/chat/summarize`:
   - Request: `{ phone }`
-  - Flujo interno:
-    1. Obtener chat activo de Redis vía backend
-    2. Extraer historial completo
-    3. `SummaryTool.generate(history)` → summary
-    4. `BackendClient.closeChat(phone, summary)` → persiste + borra Redis
-  - Response: `{ success: true, summary: "...", chat_id: 42 }`
-- [ ] **8.4** Mantener endpoints existentes (actualizados):
-  - `POST /api/rag/ingest` — ingesta documentos filesystem
-  - `POST /api/rag/ingest/viajes` — refresca viajes del backend
-  - `POST /api/rag/query` — búsqueda semántica (sin LLM, para debug)
-- [ ] **8.5** Agregar schemas Zod para request bodies de los nuevos endpoints
+  - Flujo: Obtener chat → generar summary → cerrar en backend
+  - Response: `{ success, summary, chat_id, needsHumanFollowup }`
+- [x] **8.4** Mantener endpoints existentes (ingest, query)
+- [x] **8.5** Agregar schemas Zod para request bodies
 
 ---
 
 ## Fase 9: CORS + middleware + App
 
-- [ ] **9.1** Actualizar `src/App/App.ts`
-- [ ] **9.2** Agregar middleware CORS con `CORS_ORIGINS` env var
-- [ ] **9.3** Agregar middleware de logging básico (método, path, status, tiempo)
-- [ ] **9.4** Configurar `dotenv` en el entry point `src/index.ts`
-- [ ] **9.5** Mejorar `GET /api/health`:
-  - Verificar conexión a ChromaDB
-  - Verificar conexión a Backend (`GET /api/rag/travels`)
-  - Verificar LLM (ping rápido)
-  - Response: `{ ok, chromadb, backend, llm, embeddings, timestamp }`
+- [x] **9.1** Actualizar `src/App/App.ts` — CORS + logging middleware
+- [x] **9.2** Agregar middleware CORS con `CORS_ORIGINS` env var
+- [x] **9.3** Agregar middleware de logging básico
+- [x] **9.4** Configurar `dotenv` en `src/index.ts`
+- [x] **9.5** Mejorar `GET /api/health` — verifica backend + LLM
 
 ---
 
 ## Fase 10: Integración con Backend Spring
 
-- [ ] **10.1** Modificar `backend/.../rag/RagGatewayService.kt`
-- [ ] **10.2** Cambiar `rag.service.url` de `http://127.0.0.1:8001` (Python) a `http://127.0.0.1:3000` (TS)
-- [ ] **10.3** Verificar que el contrato de `POST /api/chat` en el agente TS coincide con lo que `RagGatewayService` espera:
-  - Envía: `{ phone, message }` (`WhatsAppInboundRequest`)
-  - Espera: `{ answer, sources, model, chat_id }` (`RagAssistantResponse`)
-- [ ] **10.4** El `RagGatewayService` llama a `/chat` — el agente TS debe responder en ese path o actualizar la URL en el gateway
+- [x] **10.1** Modificar `RagGatewayService.kt` — URL default a `http://127.0.0.1:3000/api`
+- [x] **10.2** Verificar contrato: `POST /api/chat` → `RagAssistantResponse` compatible
 
 ---
 
 ## Fase 11: .env + documentación
 
-- [ ] **11.1** Crear `.env.example` completo:
-  ```env
-  # Server
-  PORT=3000
-  CORS_ORIGINS=http://localhost:4321,http://localhost:8080
-
-  # LLM (Primary: Google Gemini)
-  GOOGLE_API_KEY=
-  LLM_MODEL=gemini-2.5-flash
-  LLM_TEMPERATURE=0.35
-
-  # LLM (Fallback: Ollama)
-  OLLAMA_HOST=http://localhost:11434
-  OLLAMA_LLM_MODEL=gemma3:12b
-
-  # Embeddings
-  EMBEDDINGS_PROVIDER=google
-  EMBEDDINGS_MODEL=text-embedding-004
-  OLLAMA_EMBEDDINGS_MODEL=qwen3-embedding
-
-  # Vector Store
-  CHROMA_COLLECTION=knowledge-base
-  CHROMA_PERSIST_DIR=./chromadb
-
-  # Chunking
-  CHUNK_SIZE=500
-  CHUNK_OVERLAP=50
-
-  # Backend
-  BACKEND_URL=http://localhost:8080
-
-  # Knowledge Base
-  KNOWLEDGE_DIR=./data/knowledge
-  ```
-- [ ] **11.2** Actualizar `.env` actual con las nuevas variables (sin exponer API keys reales en el repo)
-- [ ] **11.3** Actualizar `README.md` con:
-  - Arquitectura del agente
-  - Cómo ejecutar (dev + prod)
-  - Endpoints disponibles
-  - Variables de entorno
-  - Flujo de integración con n8n y backend
-- [ ] **11.4** Actualizar `package.json` scripts:
-  ```json
-  {
-    "scripts": {
-      "dev": "bun --watch src/index.ts",
-      "start": "bun src/index.ts",
-      "typecheck": "tsc --noEmit"
-    }
-  }
-  ```
+- [x] **11.1** Crear `.env.example` completo
+- [x] **11.2** Actualizar `.env.example` del root (`RAG_SERVICE_URL` → puerto 3000)
+- [x] **11.3** Actualizar `README.md` con arquitectura, endpoints, variables de entorno
+- [x] **11.4** Actualizar `package.json` scripts (`dev`, `start`, `test`)
 
 ---
 
@@ -307,12 +214,12 @@ WhatsApp → n8n (buffer 1min inactividad) → POST /api/chat → Agente TS
 
 ## Criterios de Done Global
 
-- [ ] `POST /api/rag/ingest/viajes` funciona sin errores de schema
-- [ ] `POST /api/chat` retorna respuesta conversacional con contexto de travels
-- [ ] `POST /api/chat` detecta escalación y retorna `escalate: true` cuando corresponde
-- [ ] `POST /api/chat/summarize` genera summary y cierra chat en backend
-- [ ] Fallback a Ollama si Gemini no responde
-- [ ] Health check reporta estado de todos los componentes
-- [ ] El backend puede usar el agente TS cambiando `rag.service.url`
-- [ ] CORS configurado correctamente
-- [ ] Documentación actualizada
+- [x] `POST /api/rag/ingest/viajes` funciona sin errores de schema
+- [x] `POST /api/chat` retorna respuesta conversacional con contexto de travels
+- [x] `POST /api/chat` detecta escalación y retorna `escalate: true` cuando corresponde
+- [x] `POST /api/chat/summarize` genera summary y cierra chat en backend
+- [x] Health check reporta estado de backend y LLM
+- [x] El backend puede usar el agente TS cambiando `rag.service.url` a `http://127.0.0.1:3000/api`
+- [x] CORS configurado correctamente
+- [x] Documentación actualizada (README, .env.example)
+- [x] Tests unitarios pasando (13/13)

@@ -19,7 +19,6 @@ export const RagTravelSchema = z.object({
   slug: z.string(),
   type: z.string(),
   destination: z.string(),
-  origin: z.string().nullable(),
   minPrice: z.number().nullable(),
   currency: z.string().nullable(),
   availablePackages: z.array(TravelPackageSchema),
@@ -38,7 +37,22 @@ export const RagIngestViajesBodySchema = z.object({
   apiUrl: z.string().url().optional(),
 });
 
+export const ChatRequestBodySchema = z.object({
+  message: z.string().min(1, "El campo 'message' es requerido"),
+  phone: z.string().min(1, "El campo 'phone' es requerido"),
+  history: z.array(z.object({
+    role: z.enum(["user", "assistant"]),
+    content: z.string(),
+  })).optional(),
+});
+
+export const ChatSummarizeBodySchema = z.object({
+  phone: z.string().min(1, "El campo 'phone' es requerido"),
+});
+
 // ─── Inferred types ───────────────────────────────────────────────────────────
 export type RagTravel = z.infer<typeof RagTravelSchema>;
 export type TravelPackage = z.infer<typeof TravelPackageSchema>;
 export type RagQueryBody = z.infer<typeof RagQueryBodySchema>;
+export type ChatRequestBody = z.infer<typeof ChatRequestBodySchema>;
+export type ChatSummarizeBody = z.infer<typeof ChatSummarizeBodySchema>;

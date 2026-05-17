@@ -22,7 +22,7 @@ export class ViajesLoader {
       .join(". ");
 
     const pageContent = [
-      `Viaje ${travel.type} a ${travel.destination}${travel.origin ? ` desde ${travel.origin}` : ""}.`,
+      `Viaje ${travel.type} a ${travel.destination}.`,
       `Nombre: ${travel.name}.`,
       travel.minPrice != null
         ? `Precio desde: ${travel.minPrice} ${travel.currency ?? "MXN"}.`
@@ -43,7 +43,6 @@ export class ViajesLoader {
         slug: travel.slug,
         type: travel.type,
         destination: travel.destination,
-        origin: travel.origin,
         minPrice: travel.minPrice,
         currency: travel.currency,
       },
