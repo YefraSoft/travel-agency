@@ -1,5 +1,5 @@
-import { HumanMessage, SystemMessage } from "@langchain/core/messages";
-import type { RagTravel } from "../utils/schemas";
+import { HumanMessage, SystemMessage, type BaseMessage } from "@langchain/core/messages";
+import type { RagTravel } from "../../utils/schemas";
 
 export interface ChatHistoryEntry {
   role: "user" | "assistant";

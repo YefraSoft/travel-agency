@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { createApp } from "./App/App";
 import { SERVER_CONFIG } from "./config/AppConfig";
 

@@ -32,7 +32,7 @@ export class DocumentLoader {
   private buildDirectoryLoader(): DirectoryLoader {
     return new DirectoryLoader(
       this.path,
-      this.fileLoaders as Parameters<typeof DirectoryLoader>[1],
+      this.fileLoaders,
     );
   }
 

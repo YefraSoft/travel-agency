@@ -26,6 +26,8 @@
     "zod": "^4.4.3"
   },
   "scripts": {
-    "dev": "bun --watch src/index.ts"
+    "dev": "bun --watch src/index.ts",
+    "start": "bun src/index.ts",
+    "test": "bun test"
   }
 }

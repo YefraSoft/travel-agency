@@ -34,11 +34,11 @@ WhatsApp → n8n (buffer 1min inactividad) → POST /api/chat → Agente TS
 
 ## Fase 1: Corregir contrato con el Backend
 
-- [ ] **1.1** Renombrar `src/utils/shcemas.ts` → `src/utils/schemas.ts`
-- [ ] **1.2** Reescribir `ViajeSchema` para coincidir con `RagTravelResponse` del backend:
+- [x] **1.1** Renombrar `src/utils/shcemas.ts` → `src/utils/schemas.ts`
+- [x] **1.2** Reescribir `ViajeSchema` para coincidir con `RagTravelResponse` del backend:
   - Campos: `id` (number), `name`, `slug`, `type`, `destination`, `origin` (nullable), `minPrice` (nullable number), `currency` (nullable string), `availablePackages` (array)
-- [ ] **1.3** Eliminar `ViajesResponseSchema` wrapper — el backend retorna array plano `RagTravelResponse[]`
-- [ ] **1.4** Actualizar `src/core/loaders/ViajesLoader.ts`:
+- [x] **1.3** Eliminar `ViajesResponseSchema` wrapper — el backend retorna array plano `RagTravelResponse[]`
+- [x] **1.4** Actualizar `src/core/loaders/ViajesLoader.ts`:
   - URL por defecto: `http://localhost:8080/api/rag/travels` (no `/api/travels`)
   - Parsear: `ViajeSchema.array().parse(raw)`
   - Reescribir `viajeToDocument()` con campos reales: `destination`, `name`, `minPrice`, `currency`, `availablePackages`, `type`
@@ -66,38 +66,24 @@ WhatsApp → n8n (buffer 1min inactividad) → POST /api/chat → Agente TS
 
 ## Fase 2: Limpiar y organizar código
 
-- [ ] **2.1** Eliminar archivos duplicados:
+- [x] **2.1** Eliminar archivos duplicados:
   - `src/core/vectors/VectorStorage.ts`
   - `src/App/services/VectorStorageService.ts`
-- [ ] **2.2** Renombrar `src/config/AppConfing.ts` → `src/config/AppConfig.ts`
-- [ ] **2.3** Actualizar todos los imports que referencian los archivos renombrados/eliminados
-- [ ] **2.4** Reescribir `AppConfig.ts` con variables de entorno:
-  ```
-  LLM_MODEL, LLM_TEMPERATURE, LLM_MAX_RETRIES
-  EMBEDDINGS_MODEL (Google), EMBEDDINGS_PROVIDER
-  OLLAMA_HOST, OLLAMA_LLM_MODEL, OLLAMA_EMBEDDINGS_MODEL
-  VECTOR_COLLECTION, CHUNK_SIZE, CHUNK_OVERLAP
-  BACKEND_URL, KNOWLEDGE_DIR
-  ```
-- [ ] **2.5** Crear directorio `data/knowledge/`
-- [ ] **2.6** Copiar markdowns del Python RAG a `data/knowledge/`:
-  - `viajes_demo.md`, `politicas_demo.md`, `faqs_destinos_demo.md`, `tono_ventas_demo.md`
-- [ ] **2.7** Eliminar `src/interfaces.ts` (vacío) y `src/utils/types.ts` si queda redundante con schemas Zod
+- [x] **2.2** Renombrar `src/config/AppConfing.ts` → `src/config/AppConfig.ts`
+- [x] **2.3** Actualizar todos los imports que referencian los archivos renombrados/eliminados
+- [x] **2.4** Reescribir `AppConfig.ts` con variables de entorno
+- [x] **2.5** Crear directorio `data/knowledge/`
+- [x] **2.6** Copiar markdowns del Python RAG a `data/knowledge/`
+- [x] **2.7** Eliminar `src/interfaces.ts` (vacío)
 
 ---
 
-## Fase 3: LLM Service con fallback Gemini → Ollama
+## Fase 3: LLM Service (solo Gemini)
 
 - [x] **3.1** Crear `src/core/llm/LlmService.ts`
-- [x] **3.2** Implementar clase `LlmService`:
-  - Primary: `ChatGoogle("gemini-2.5-flash")`
-  - Fallback: `ChatOllama({ model: "gemma3:12b", temperature: 0.35 })`
-  - Método `generate(messages)`: intenta Gemini, si falla → Ollama
-  - Retorna `{ content: string, model: string }`
-- [x] **3.3** Actualizar `src/core/Models.ts`:
-  - Exportar solo instancias base de embeddings
-  - Mover lógica de LLM a `LlmService`
-- [x] **3.4** Configurar variables de entorno para Ollama fallback en `.env`
+- [x] **3.2** Implementar clase `LlmService` con `ChatGoogle("gemini-2.5-flash")`
+- [x] **3.3** Actualizar `src/core/Models.ts` — solo exporta embeddings
+- [x] **3.4** Configurar variables de entorno en `AppConfig.ts`
 
 ---
 
@@ -138,36 +124,22 @@ WhatsApp → n8n (buffer 1min inactividad) → POST /api/chat → Agente TS
 
 ## Fase 6: Backend Client (simplificado)
 
-- [ ] **6.1** Crear `src/services/BackendClient.ts`
-- [ ] **6.2** Implementar métodos:
-  | Método | Endpoint | Propósito |
-  |--------|----------|-----------|
-  | `getActiveChat(phone)` | `GET /api/rag/chats/{phone}` | Obtener chat activo de Redis |
-  | `createChat(phone)` | `POST /api/rag/chats` | Crear nueva sesión |
-  | `getTravels()` | `GET /api/rag/travels` | Catálogo de viajes |
-  | `getCustomer(phone)` | `GET /api/rag/customers/phone/{phone}` | Datos del cliente |
-  | `closeChat(phone, summary)` | `POST /api/rag/chats/phone/{phone}/close` | Cerrar + persistir |
-- [ ] **6.3** Manejo de errores con `BackendClientError`
-- [ ] **6.4** Timeout configurable (15s)
-- [ ] **6.5** Base URL desde `BACKEND_URL` env var
+- [x] **6.1** Crear `src/services/BackendClient.ts`
+- [x] **6.2** Implementar métodos
+- [x] **6.3** Manejo de errores con `BackendClientError`
+- [x] **6.4** Timeout configurable (15s default)
+- [x] **6.5** Base URL desde `BACKEND_URL` env var
+- [x] **6.6** Crear test permanente `src/services/BackendClient.test.ts`
+- [x] **6.7** Corregir bug backend: enums PostgreSQL → VARCHAR (migración 002)
 
 ---
 
 ## Fase 7: Summary Tool
 
-- [ ] **7.1** Crear `src/tools/SummaryTool.ts`
-- [ ] **7.2** Crear `src/tools/schemas.ts` con schemas Zod de tools
-- [ ] **7.3** Implementar `SummarySchema`:
-  ```typescript
-  {
-    interests: string[],       // destinos, presupuesto, fechas
-    actionsTaken: string[],    // cotizaciones, viajes consultados
-    pendingItems: string[],    // lo que el humano debe hacer
-    needsHumanFollowup: boolean,
-    contextSummary: string     // resumen libre para el backend
-  }
-  ```
-- [ ] **7.4** Implementar `SummaryTool.generate(history, travels?)`:
+- [x] **7.1** Crear `src/tools/SummaryTool.ts`
+- [x] **7.2** Crear `src/tools/schemas.ts` con schemas Zod de tools
+- [x] **7.3** Implementar `SummarySchema`
+- [x] **7.4** Implementar `SummaryTool.generate(history)`:
   - Usa LLM para analizar historial
   - Valida salida con `SummarySchema`
   - Retorna objeto tipado
@@ -176,21 +148,13 @@ WhatsApp → n8n (buffer 1min inactividad) → POST /api/chat → Agente TS
 
 ## Fase 7.5: Escalation Tool
 
-- [ ] **7.5.1** Crear `src/tools/EscalationTool.ts`
-- [ ] **7.5.2** Implementar `EscalationSchema`:
-  ```typescript
-  {
-    reason: "unresolved" | "payment" | "complex_request",
-    clientQuestion: string,
-    context: string,          // viaje consultado, monto, etc.
-    suggestedAction: string   // "verificar pago", "ofrecer descuento", etc.
-  }
-  ```
-- [ ] **7.5.3** Cuándo se invoca (LLM decide):
+- [x] **7.5.1** Crear `src/tools/EscalationTool.ts`
+- [x] **7.5.2** Implementar `EscalationSchema`
+- [x] **7.5.3** Cuándo se invoca (LLM decide):
   1. **unresolved** — pregunta fuera del conocimiento disponible
   2. **payment** — cliente menciona pago realizado o quiere verificar pago
   3. **complex_request** — negociación de precios, casos especiales, quejas
-- [ ] **7.5.4** Integrar en el flujo de `/api/chat`:
+- [x] **7.5.4** Integrar en el flujo de `/api/chat`:
   - LLM puede decidir invocar el tool durante la generación
   - Si se invoca, la respuesta incluye `escalate: true` + datos de escalación
   - n8n lee el flag y redirige a humano

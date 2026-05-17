@@ -58,7 +58,8 @@ export class RagPipeline {
     const contexts = documents.map((d) => d.pageContent);
 
     const messages = PromptBuilder.buildRagPrompt(question, travels, contexts, history);
-    return llmService.generate(messages);
+    const result = await llmService.generate(messages);
+    return { answer: result.content, model: result.model };
   }
 
   /** Genera un resumen de la conversación usando LLM. */

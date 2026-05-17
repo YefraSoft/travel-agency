@@ -12,18 +12,22 @@ export interface LlmResult {
  * (Ollama removido — el equipo no tiene capacidad para ejecutarlo localmente)
  */
 export class LlmService {
-  private readonly gemini: ChatGoogle;
+  private gemini: ChatGoogle | null = null;
 
-  constructor() {
-    this.gemini = new ChatGoogle({
-      model: LLM_CONFIG.model,
-      temperature: LLM_CONFIG.temperature,
-      maxRetries: 1,
-    });
+  private getOrCreateGemini(): ChatGoogle {
+    if (!this.gemini) {
+      this.gemini = new ChatGoogle({
+        model: LLM_CONFIG.model,
+        temperature: LLM_CONFIG.temperature,
+        maxRetries: 1,
+        apiKey: process.env.GOOGLE_API_KEY,
+      });
+    }
+    return this.gemini;
   }
 
   async generate(messages: BaseMessage[]): Promise<LlmResult> {
-    const response = await this.gemini.invoke(messages);
+    const response = await this.getOrCreateGemini().invoke(messages);
     return {
       content: response.content as string,
       model: `gemini-${LLM_CONFIG.model}`,

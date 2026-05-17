@@ -19,6 +19,7 @@ export const RagTravelSchema = z.object({
   slug: z.string(),
   type: z.string(),
   destination: z.string(),
+  origin: z.string().nullable(),
   minPrice: z.number().nullable(),
   currency: z.string().nullable(),
   availablePackages: z.array(TravelPackageSchema),

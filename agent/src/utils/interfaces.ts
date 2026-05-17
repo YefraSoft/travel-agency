@@ -15,3 +15,26 @@ export interface IVectorStore {
   similaritySearch(query: string, k?: number): Promise<SearchResult>;
   deleteCollection(): Promise<void>;
 }
+
+export interface ChatMessage {
+  type: "SYSTEM" | "HUMAN" | "AI" | "TOOL" | "FUNCTION";
+  content: string;
+}
+
+export interface ChatResponse {
+  id: number;
+  phone: string;
+  customerId: number | null;
+  contextSummary: string | null;
+  closedAt: string | null;
+}
+
+export interface CustomerResponse {
+  id: number;
+  name: string;
+  email: string | null;
+  phone: string;
+  birthdate: string | null;
+  origin: string;
+  createdAt: string;
+}
