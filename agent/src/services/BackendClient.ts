@@ -1,11 +1,15 @@
 import { BACKEND_URL } from "../config/AppConfig";
 import type { RagTravel } from "../utils/schemas";
-import type { ChatMessage, ChatResponse, CustomerResponse } from "../utils/interfaces";
+import type {
+  ChatMessage,
+  ChatResponse,
+  CustomerResponse,
+} from "../utils/interfaces";
 
 export class BackendClientError extends Error {
   constructor(
     message: string,
-    public readonly statusCode?: number
+    public readonly statusCode?: number,
   ) {
     super(message);
     this.name = "BackendClientError";
@@ -28,7 +32,7 @@ export class BackendClient {
   private async request<T>(
     method: string,
     path: string,
-    body?: unknown
+    body?: unknown,
   ): Promise<T> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeout);
@@ -44,7 +48,7 @@ export class BackendClient {
       if (!response.ok) {
         throw new BackendClientError(
           `Backend ${method} ${path} returned ${response.status}: ${response.statusText}`,
-          response.status
+          response.status,
         );
       }
 
@@ -54,10 +58,12 @@ export class BackendClient {
     } catch (error) {
       if (error instanceof BackendClientError) throw error;
       if (error instanceof DOMException && error.name === "AbortError") {
-        throw new BackendClientError(`Request to ${path} timed out after ${this.timeout}ms`);
+        throw new BackendClientError(
+          `Request to ${path} timed out after ${this.timeout}ms`,
+        );
       }
       throw new BackendClientError(
-        `Backend request failed: ${error instanceof Error ? error.message : "unknown"}`
+        `Backend request failed: ${error instanceof Error ? error.message : "unknown"}`,
       );
     } finally {
       clearTimeout(timer);
@@ -67,9 +73,13 @@ export class BackendClient {
   /** GET /api/rag/chats/{phone} — Obtener chat activo de Redis */
   async getActiveChat(phone: string): Promise<ChatResponse | null> {
     try {
-      return await this.request("GET", `/api/rag/chats/${encodeURIComponent(phone)}`);
+      return await this.request(
+        "GET",
+        `/api/rag/chats/${encodeURIComponent(phone)}`,
+      );
     } catch (error) {
-      if (error instanceof BackendClientError && error.statusCode === 404) return null;
+      if (error instanceof BackendClientError && error.statusCode === 404)
+        return null;
       throw error;
     }
   }
@@ -93,24 +103,32 @@ export class BackendClient {
     try {
       const customer = await this.request<CustomerResponse | undefined>(
         "GET",
-        `/api/rag/customers/phone/${encodeURIComponent(phone)}`
+        `/api/rag/customers/phone/${encodeURIComponent(phone)}`,
       );
       return customer ?? null;
     } catch (error) {
-      if (error instanceof BackendClientError && error.statusCode === 404) return null;
+      if (error instanceof BackendClientError && error.statusCode === 404)
+        return null;
       throw error;
     }
   }
 
   /** POST /api/rag/chats/phone/{phone}/close — Cerrar chat + persistir summary */
   async closeChat(phone: string, summary: string): Promise<ChatResponse> {
-    return this.request("POST", `/api/rag/chats/phone/${encodeURIComponent(phone)}/close`, {
-      contextSummary: summary,
-    });
+    return this.request(
+      "POST",
+      `/api/rag/chats/phone/${encodeURIComponent(phone)}/close`,
+      {
+        contextSummary: summary,
+      },
+    );
   }
 
   /** POST /api/rag/chats/{id}/messages — Agregar mensajes al historial */
-  async addMessage(chatId: number, messages: ChatMessage[]): Promise<ChatResponse> {
+  async addMessage(
+    chatId: number,
+    messages: ChatMessage[],
+  ): Promise<ChatResponse> {
     return this.request("POST", `/api/rag/chats/${chatId}/messages`, {
       interaction: messages,
     });

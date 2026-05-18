@@ -1,4 +1,5 @@
 import { Router, type Request, type Response } from "express";
+import { z } from "zod";
 import { RagPipeline } from "../../core/PipeLine";
 import { DocumentLoader } from "../../core/loaders/DocumentLoader";
 import { ChromaVectorStore } from "../../core/vectors/ChromaVector";
@@ -15,7 +16,7 @@ const chatRouter = Router();
 
 const pipeline = new RagPipeline(
   new DocumentLoader(KNOWLEDGE_DIR),
-  new ChromaVectorStore()
+  new ChromaVectorStore(),
 );
 
 /** POST /api/chat — Procesa mensaje con RAG completo */
@@ -25,7 +26,7 @@ chatRouter.post("/chat", async (req: Request, res: Response) => {
   if (!parsed.success) {
     res.status(400).json({
       success: false,
-      errors: parsed.error.flatten().fieldErrors,
+      errors: z.treeifyError(parsed.error),
     });
     return;
   }
@@ -68,11 +69,12 @@ chatRouter.post("/chat", async (req: Request, res: Response) => {
 
     // 4. Si hay escalación, retornar inmediatamente
     if (escalation) {
-      const answer = escalation.reason === "payment"
-        ? "Entiendo que mencionas un pago. Permíteme transferirte con un asesor para verificarlo."
-        : escalation.reason === "unresolved"
-          ? "No tengo información suficiente para responder tu pregunta. Te transferiré con un asesor."
-          : "Tu solicitud requiere atención especializada. Te transferiré con un asesor.";
+      const answer =
+        escalation.reason === "payment"
+          ? "Entiendo que mencionas un pago. Permíteme transferirte con un asesor para verificarlo."
+          : escalation.reason === "unresolved"
+            ? "No tengo información suficiente para responder tu pregunta. Te transferiré con un asesor."
+            : "Tu solicitud requiere atención especializada. Te transferiré con un asesor.";
 
       if (persist && chatId) {
         await backendClient.addMessage(chatId, [
@@ -151,10 +153,11 @@ chatRouter.post("/chat/summarize", async (req: Request, res: Response) => {
     }
 
     // 2. Convertir chat history a formato del agente
-    const history = (activeChat as any).chatHistory?.map((msg: any) => ({
-      role: msg.type === "HUMAN" ? "user" : "assistant",
-      content: msg.content,
-    })) ?? [];
+    const history =
+      (activeChat as any).chatHistory?.map((msg: any) => ({
+        role: msg.type === "HUMAN" ? "user" : "assistant",
+        content: msg.content,
+      })) ?? [];
 
     if (history.length === 0) {
       res.status(400).json({
@@ -168,7 +171,10 @@ chatRouter.post("/chat/summarize", async (req: Request, res: Response) => {
     const summary = await summaryTool.generate(history);
 
     // 4. Cerrar chat en backend (persiste en PostgreSQL + borra Redis)
-    const closedChat = await backendClient.closeChat(phone, summary.contextSummary);
+    const closedChat = await backendClient.closeChat(
+      phone,
+      summary.contextSummary,
+    );
 
     res.json({
       success: true,
