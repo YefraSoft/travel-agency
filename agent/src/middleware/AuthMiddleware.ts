@@ -4,12 +4,15 @@ const RAG_API_KEY = process.env.RAG_API_KEY;
 
 /**
  * Middleware que valida la API_KEY para endpoints internos.
- * Si RAG_API_KEY no está definida, permite todas las requests (modo dev).
- * /api/health siempre es público.
+ * /api/health siempre es público porque se monta antes de este middleware.
  */
 export function authMiddleware(req: Request, res: Response, next: NextFunction) {
   if (!RAG_API_KEY) {
-    return next();
+    res.status(500).json({
+      success: false,
+      error: "Server misconfigured: RAG_API_KEY is required",
+    });
+    return;
   }
 
   const providedKey = req.headers["x-api-key"];

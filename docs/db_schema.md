@@ -1,7 +1,7 @@
 # Schema de Base de Datos — Travel Agency
 
-**Versión:** 2.0
-**Fecha:** 2026-04-29
+**Versión:** 3.0
+**Fecha:** 2026-05-17
 **Motor:** PostgreSQL 16
 
 ---
@@ -34,7 +34,7 @@ erDiagram
     BOOKINGS ||--o{ PAYMENTS : "receives"
     BOOKINGS ||--o{ REVIEWS : "verified nullable"
 
-    CHATS ||--o{ RAG_CHATS : "processed messages"
+    CHATS ||--o{ ESCALATIONS : "triggers"
 
     USERS {
         int id PK
@@ -179,6 +179,21 @@ erDiagram
         text context_summary
         timestamp created_at
         timestamp closed_at
+    }
+
+    ESCALATIONS {
+        int id PK
+        int chat_id FK
+        varchar phone
+        varchar reason
+        text client_question
+        text context
+        text suggested_action
+        varchar status
+        varchar attended_by
+        timestamp attended_at
+        timestamp resolved_at
+        timestamp created_at
     }
 
 ```
@@ -347,6 +362,22 @@ entity chats {
   closed_at : TIMESTAMP
 }
 
+entity escalations {
+  * id : SERIAL <<PK>>
+  --
+  chat_id : INT <<FK nullable>>
+  phone : VARCHAR(14)
+  reason : VARCHAR(20)
+  client_question : TEXT
+  context : TEXT
+  suggested_action : TEXT
+  status : VARCHAR(20)
+  attended_by : VARCHAR(100)
+  attended_at : TIMESTAMP
+  resolved_at : TIMESTAMP
+  created_at : TIMESTAMP
+}
+
 users ||--o{ bookings : created_by
 users ||--o{ payments : verified_by
 customers ||--o{ companions : owns
@@ -366,6 +397,7 @@ bookings ||--o{ booking_companions : has
 companions ||--o{ booking_companions : included
 bookings ||--o{ payments : receives
 bookings ||--o{ reviews : verifies
+chats ||--o{ escalations : triggers
 @enduml
 ```
 
@@ -629,3 +661,28 @@ El RAG usa Redis (TTL 24h) como contexto activo. Al cerrarse o expirar, el backe
 
 **Reviews abiertas y verificadas**
 `customer_id` nullable permite reseñas generales anónimas de la agencia. Para reseñas públicas de un viaje asociadas a cliente, `booking_id` distingue reseñas verificadas; la regla de que la reserva esté `COMPLETED` se valida en backend.
+
+---
+
+### `escalations` → `chats` (nullable)
+
+Escalaciones generadas cuando el RAG detecta solicitudes de pago o peticiones complejas que requieren intervención humana.
+
+| Columna | Tipo | Restricciones | Descripción |
+|---|---|---|---|
+| `id` | `SERIAL` | PK | |
+| `chat_id` | `INT` | nullable, FK → chats | Chat que originó la escalación |
+| `phone` | `VARCHAR(14)` | NOT NULL | Teléfono del cliente |
+| `reason` | `VARCHAR(20)` | NOT NULL | `payment`, `complex_request`, `other` |
+| `client_question` | `TEXT` | NOT NULL | Pregunta o solicitud del cliente |
+| `context` | `TEXT` | nullable | Contexto adicional del chat |
+| `suggested_action` | `TEXT` | nullable | Sugerencia del RAG para el agente |
+| `status` | `VARCHAR(20)` | NOT NULL, DEFAULT 'pending' | `pending`, `resolved`, `ignored` |
+| `attended_by` | `VARCHAR(100)` | nullable | Agente que atendió la escalación |
+| `attended_at` | `TIMESTAMP` | nullable | Cuándo fue atendida |
+| `resolved_at` | `TIMESTAMP` | nullable | Cuándo fue resuelta |
+| `created_at` | `TIMESTAMP` | NOT NULL, DEFAULT NOW() | |
+
+**Índices:** `idx_escalations_phone`, `idx_escalations_status`
+
+**Flujo:** Agent detecta `escalate: true` → Backend `RagService` crea registro → Dashboard muestra pendiente → Agente responde via WhatsApp → Marca como resuelta.

@@ -30,7 +30,7 @@ chatRouter.post("/chat", async (req: Request, res: Response) => {
     return;
   }
 
-  const { message, phone, history } = parsed.data;
+  const { message, phone, history, persist } = parsed.data;
 
   try {
     // 1. Fetch travels del backend
@@ -51,6 +51,11 @@ chatRouter.post("/chat", async (req: Request, res: Response) => {
       chatId = activeChat?.id ?? null;
     } catch (e) {
       console.warn("[/api/chat] Failed to get/create chat:", e);
+      res.status(503).json({
+        success: false,
+        error: "Could not create or load chat in backend",
+      });
+      return;
     }
 
     // 3. Escalation check — antes de generar respuesta
@@ -63,14 +68,24 @@ chatRouter.post("/chat", async (req: Request, res: Response) => {
 
     // 4. Si hay escalación, retornar inmediatamente
     if (escalation) {
+      const answer = escalation.reason === "payment"
+        ? "Entiendo que mencionas un pago. Permíteme transferirte con un asesor para verificarlo."
+        : escalation.reason === "unresolved"
+          ? "No tengo información suficiente para responder tu pregunta. Te transferiré con un asesor."
+          : "Tu solicitud requiere atención especializada. Te transferiré con un asesor.";
+
+      if (persist && chatId) {
+        await backendClient.addMessage(chatId, [
+          { type: "HUMAN", content: message },
+          { type: "AI", content: answer },
+        ]);
+      }
+
       res.json({
-        answer: escalation.reason === "payment"
-          ? "Entiendo que mencionas un pago. Permíteme transferirte con un asesor para verificarlo."
-          : escalation.reason === "unresolved"
-            ? "No tengo información suficiente para responder tu pregunta. Te transferiré con un asesor."
-            : "Tu solicitud requiere atención especializada. Te transferiré con un asesor.",
+        answer,
         sources: [],
-        model: "gemini-2.5-flash",
+        model: process.env.LLM_MODEL || "gemini-2.5-flash",
+        chatId,
         chat_id: chatId,
         escalate: true,
         escalation: {
@@ -86,10 +101,18 @@ chatRouter.post("/chat", async (req: Request, res: Response) => {
     // 5. RAG generation
     const result = await pipeline.queryWithRag(message, travels, history);
 
+    if (persist && chatId) {
+      await backendClient.addMessage(chatId, [
+        { type: "HUMAN", content: message },
+        { type: "AI", content: result.answer },
+      ]);
+    }
+
     res.json({
       answer: result.answer,
       sources: [],
       model: result.model,
+      chatId,
       chat_id: chatId,
       escalate: false,
     });

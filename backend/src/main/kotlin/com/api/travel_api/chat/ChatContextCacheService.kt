@@ -4,7 +4,7 @@ import com.api.travel_api.api.ChatMessage
 import com.api.travel_api.api.ChatMessageResponse
 import com.api.travel_api.model.entities.Chat
 import com.api.travel_api.model.enums.UserRole
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.redis.RedisConnectionFailureException
@@ -37,7 +37,7 @@ class ChatContextCacheService(
     @Value("\${rag.chat.redis.ttl-hours:24}") ttlHours: Long
 ) {
     private val logger = LoggerFactory.getLogger(ChatContextCacheService::class.java)
-    private val objectMapper = ObjectMapper().findAndRegisterModules()
+    private val objectMapper = jacksonObjectMapper()
     private val ttl: Duration = Duration.ofHours(ttlHours)
 
     fun get(phone: String): CachedChatContext? = runRedis("get chat context") {

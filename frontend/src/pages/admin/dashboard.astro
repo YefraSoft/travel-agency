@@ -1,0 +1,73 @@
+---
+import AdminDashboard from "../../islands/AdminDashboard";
+import "../../styles/global.css";
+
+const cookieName = "godiego_admin";
+const dashboardPassword = import.meta.env.ADMIN_DASHBOARD_PASSWORD;
+let loginError = false;
+
+if (Astro.request.method === "POST") {
+  const formData = await Astro.request.formData();
+  const password = String(formData.get("password") ?? "");
+
+  if (dashboardPassword && password === dashboardPassword) {
+    Astro.cookies.set(cookieName, "1", {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: import.meta.env.PROD,
+      path: "/admin",
+      maxAge: 60 * 60 * 8,
+    });
+    return Astro.redirect("/admin/dashboard");
+  }
+
+  loginError = true;
+}
+
+const authenticated = Astro.cookies.get(cookieName)?.value === "1";
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Dashboard — Go Diego</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>" />
+  </head>
+  <body class="bg-gray-100 text-dark min-h-screen">
+    {authenticated ? (
+      <AdminDashboard client:only="react" />
+    ) : (
+      <main class="min-h-screen flex items-center justify-center px-4">
+        <section class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm">
+          <h1 class="text-2xl font-bold text-center mb-2">Dashboard Go Diego</h1>
+          <p class="text-sm text-gray-500 text-center mb-6">Ingresa la contraseña administrativa.</p>
+          {loginError && (
+            <p class="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-3 py-2 mb-4">
+              Contraseña inválida.
+            </p>
+          )}
+          {!dashboardPassword && (
+            <p class="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-lg px-3 py-2 mb-4">
+              Falta configurar ADMIN_DASHBOARD_PASSWORD.
+            </p>
+          )}
+          <form method="post" class="space-y-4">
+            <input
+              type="password"
+              name="password"
+              placeholder="Contraseña"
+              class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              required
+            />
+            <button type="submit" class="w-full bg-primary text-white py-3 rounded-lg font-medium hover:bg-primary-dark transition">
+              Ingresar
+            </button>
+          </form>
+        </section>
+      </main>
+    )}
+  </body>
+</html>

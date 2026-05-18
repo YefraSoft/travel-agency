@@ -20,6 +20,10 @@ class ReviewService(
     private val bookingService: BookingService
 ) {
     @Transactional(readOnly = true)
+    fun listVisible(): List<ReviewResponse> =
+        reviewRepository.findByVisibleTrueOrderByCreatedAtDesc().map { it.toResponse() }
+
+    @Transactional(readOnly = true)
     fun listByTravel(travelId: Int): List<ReviewResponse> {
         travelService.findEntity(travelId)
         return reviewRepository.findByTravelIdAndVisibleTrueOrderByCreatedAtDesc(travelId).map { it.toResponse() }
@@ -72,4 +76,3 @@ fun Review.toResponse() = ReviewResponse(
     visible = visible,
     createdAt = createdAt
 )
-

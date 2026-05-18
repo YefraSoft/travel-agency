@@ -91,7 +91,11 @@ export class BackendClient {
   /** GET /api/rag/customers/phone/{phone} — Datos del cliente */
   async getCustomer(phone: string): Promise<CustomerResponse | null> {
     try {
-      return await this.request("GET", `/api/rag/customers/phone/${encodeURIComponent(phone)}`);
+      const customer = await this.request<CustomerResponse | undefined>(
+        "GET",
+        `/api/rag/customers/phone/${encodeURIComponent(phone)}`
+      );
+      return customer ?? null;
     } catch (error) {
       if (error instanceof BackendClientError && error.statusCode === 404) return null;
       throw error;

@@ -1,4 +1,5 @@
 import type { Document } from "@langchain/core/documents";
+import type { BaseDocumentLoader } from "@langchain/core/document_loaders/base";
 
 export interface SplitterConfig {
   chunkSize: number;
@@ -31,4 +32,4 @@ export interface HealthResponse {
   timestamp: string;
 }
 
-export type FileLoaderMap = Record<string, (path: string) => unknown>;
+export type FileLoaderMap = Record<string, (path: string) => BaseDocumentLoader>;

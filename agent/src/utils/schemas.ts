@@ -40,6 +40,7 @@ export const RagIngestViajesBodySchema = z.object({
 export const ChatRequestBodySchema = z.object({
   message: z.string().min(1, "El campo 'message' es requerido"),
   phone: z.string().min(1, "El campo 'phone' es requerido"),
+  persist: z.boolean().default(true),
   history: z.array(z.object({
     role: z.enum(["user", "assistant"]),
     content: z.string(),

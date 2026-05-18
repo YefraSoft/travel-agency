@@ -1,103 +1,170 @@
-# Agencia de Viajes
+# Go Diego Travel Agency
 
-Sistema de gestion para una agencia de viajes que opera principalmente por WhatsApp. El MVP contempla catalogo publico, backend administrativo, agente RAG para atencion inicial y automatizaciones con n8n.
+Sistema de gestion para una agencia de viajes que opera principalmente por WhatsApp. Paquetes todo incluido, cruceros y viajes a la medida.
+
+## Arquitectura
+
+```
+WhatsApp → n8n (Redis buffer 60s) → POST /api/chat → Agent TS (Gemini + ChromaDB)
+                                                        ↓
+                                          { answer, escalate, escalation }
+                                                        ↓
+                          n8n bifurca: respuesta directa O escalacion
+                                                        ↓
+                          Dashboard Admin (Astro) ← GET /api/rag/escalations/pending
+                                                        ↓
+                          Agente humano responde via wa.me/{phone}
+```
 
 ## Estructura
 
 ```txt
 travel-agency/
-├── backend/   # API REST — Go + Fiber + GORM
-├── frontend/  # Sitio publico — Astro + Tailwind
-├── rag/       # Agente conversacional — Python + LlamaIndex + ChromaDB + Ollama
-├── mobile/    # App admin — Flutter, fase futura
-├── infra/     # Docker Compose, SQL, n8n e infraestructura compartida
-└── docs/      # Requisitos, plan, schema y especificacion de API
+├── backend/          # API REST — Spring Boot 4 + Kotlin + JPA + Flyway
+├── frontend/         # Sitio publico — Astro 6 + Tailwind + React islands
+├── agent/            # Agente conversacional — TypeScript + Express + Gemini + ChromaDB
+├── deprecated/       # Codigo obsoleto (no eliminar hasta release v1.0)
+│   ├── rag-python/   #   Antigua implementacion Python RAG
+│   └── sql-legacy/   #   Migraciones SQL antiguas
+├── mobile/           # App admin — Flutter (pendiente)
+├── infra/            # Docker Compose, scripts, flujos n8n
+│   └── n8n/          #   Flujos exportados de n8n en JSON
+└── docs/
+    ├── requisitos_v2.md   # Requisitos funcionales aprobados
+    ├── db_schema.md       # Schema de BD documentado
+    └── api_spec.md        # Especificacion de endpoints REST
 ```
 
-## Documentacion
+## Stack Tecnologico
 
-- `docs/requisitos_v2.md`: requisitos funcionales aprobados.
-- `docs/plan.md`: plan de desarrollo por fases.
-- `docs/db_schema.md`: schema de base de datos, pendiente de completar en Fase 1.
-- `docs/api_spec.md`: especificacion REST, pendiente de completar en Fase 2.
+| Capa | Tecnologia |
+| --- | --- |
+| Backend | Spring Boot 4.0.6, Kotlin 2.2.21, JPA/Hibernate, Flyway, PostgreSQL 16, Redis 7 |
+| Frontend | Astro 6+, Tailwind CSS, React 19 (islas), TypeScript |
+| Agent (RAG) | TypeScript (Bun), Express 5, Google Gemini 2.5 Flash, ChromaDB, LangChain |
+| Infra | Docker, Docker Compose, n8n |
+| Observabilidad | Prometheus, Grafana, Loki, Uptime Kuma |
 
 ## Desarrollo
 
-El proyecto se trabaja por fases segun `docs/plan.md`. No se debe avanzar a una fase posterior si la actual no cumple su criterio de "Done cuando".
+### Requisitos
 
-## Levantar Servicios
+- Docker + Docker Compose
+- Java 24 (para build del backend)
+- Node.js 20+ (para frontend)
+- Bun (para agent)
 
-La infraestructura base usa PostgreSQL 16, Redis 7 y Adminer. Copia `.env.example` a `.env` para levantar los servicios en desarrollo local.
-
-Cuando la infraestructura base exista, el flujo esperado sera:
+### Levantar Servicios
 
 ```bash
-docker compose up
+# Copiar variables de entorno
+cp .env.example .env
+
+# Levantar infraestructura base
+docker compose up -d postgres redis
 ```
 
-Adminer queda disponible en `http://localhost:18080`.
+### Backend
 
-Servicios de observabilidad:
+```bash
+cd backend
+./mvnw spring-boot:run
+```
+
+Puerto: `8080`
+Swagger: `http://localhost:8080/swagger-ui.html`
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Puerto: `4321`
+
+### Agent (RAG)
+
+```bash
+cd agent
+bun install
+bun run dev
+```
+
+Puerto: `3002` (host), `3000` (container)
+
+### n8n
+
+```bash
+docker compose up -d n8n
+```
+
+Puerto: `5678`
+
+### Servicios de Observabilidad
 
 - Prometheus: `http://localhost:9090`
 - Grafana: `http://localhost:3000`
 - Loki: `http://localhost:3100`
 - Uptime Kuma: `http://localhost:3001`
+- Adminer: `http://localhost:18080`
 
-Credenciales locales de Grafana se definen en `.env` usando `GRAFANA_ADMIN_USER` y `GRAFANA_ADMIN_PASSWORD`.
+## Variables de Entorno
 
-## Proyectos
+Ver `.env.example` para la lista completa. Las principales:
 
-- Backend: modulo Go en `backend/`, verificable con `go test ./...` y `go run ./cmd/api`.
-- Frontend: proyecto Astro en `frontend/`, verificable con `npm run build`.
-- RAG: entorno virtual Python en `rag/.venv`.
-- Ollama: instalado en Windows; validado contra `http://localhost:11434` desde PowerShell.
+| Variable | Descripcion |
+| --- | --- |
+| `DATABASE_URL` | JDBC URL de PostgreSQL |
+| `DATABASE_USERNAME` | Usuario de PostgreSQL |
+| `DATABASE_PASSWORD` | Contrasena de PostgreSQL |
+| `GOOGLE_API_KEY` | API key de Google para Gemini |
+| `RAG_API_KEY` | Clave para autenticar servicios internos |
+| `PUBLIC_API_URL` | URL del backend (frontend) |
+| `PUBLIC_WHATSAPP_NUMBER` | Numero de WhatsApp de la agencia |
+| `ADMIN_DASHBOARD_PASSWORD` | Contrasena server-side del dashboard admin |
 
-Si Go no esta en el `PATH` de WSL, agrega temporalmente el binario local instalado:
+## Comunicacion Interna
 
-```bash
-export PATH="$HOME/.local/go/bin:$PATH"
+Todos los servicios internos se comunican mediante `X-API-Key`:
+
+```
+n8n ──[X-API-Key]──→ Agent (POST /api/chat)
+Backend ──[X-API-Key]──→ Agent (POST /api/chat)
+Frontend ──→ Backend (endpoints publicos /admin)
 ```
 
 ## Reglas Importantes
 
 - No commitear `.env` ni credenciales.
 - Documentar toda variable de entorno en `.env.example`.
-- No modificar migraciones SQL ya ejecutadas; crear una nueva migracion numerada.
-- Mantener la logica de negocio fuera de handlers.
+- No modificar migraciones Flyway ya ejecutadas; crear una nueva numerada.
+- Mantener la logica de negocio fuera de controllers (usar services).
 - El RAG no procesa pagos; siempre escala al agente humano.
+- Archivos en `deprecated/` se eliminan hasta release v1.0.
 
-## Demo Temporal RAG
+## Documentacion
 
-Entregable de emergencia para probar el alcance del asistente conversacional antes de continuar con el plan completo.
+- `docs/requisitos_v2.md`: requisitos funcionales aprobados.
+- `docs/db_schema.md`: schema de base de datos.
+- `docs/api_spec.md`: especificacion REST de la API.
+- `plan-final.md`: plan de desarrollo por fases.
+- `AGENTS.md`: guia para agentes de IA.
 
-Servicios del demo:
+## Usuarios de Prueba
 
-- Chat web: `http://127.0.0.1:4321/temp/chat`
-- API RAG: `http://127.0.0.1:5000`
-- Health RAG: `http://127.0.0.1:8001/health`
+| Email | Contrasena | Rol |
+| --- | --- | --- |
+| `admin@godiego.com` | `Admin123!` | ADMIN |
+| `agente@godiego.com` | `Agent123!` | AGENT |
+| `vendedor@godiego.com` | `Seller123!` | SELLER |
 
-Ejecutar RAG:
+## Dashboard Admin
 
-```bash
-cd rag
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --host 127.0.0.1 --port 5000 --reload
-```
+URL: `http://localhost:4321/admin/dashboard`
+Contrasena: configurar `ADMIN_DASHBOARD_PASSWORD` en `.env` o `frontend/.env`.
 
-Reindexar conocimiento demo:
+## Licencia
 
-```bash
-curl -X POST http://127.0.0.1:5000/reindex
-```
-
-Ejecutar frontend:
-
-```bash
-cd frontend
-npm install
-npm run dev -- --host 127.0.0.1 --port 4321
-```
-
-El demo usa datos ficticios en `rag/data/knowledge/` y Ollama local en Windows. Si WSL no puede conectar directamente a `localhost:11434`, el servicio RAG usa PowerShell como fallback para consultar Ollama.
+Propietario — Go Diego Travel Agency

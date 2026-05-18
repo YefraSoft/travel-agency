@@ -1,17 +1,118 @@
 ---
-
+import BaseLayout from "../layouts/BaseLayout.astro";
+import TravelCards from "../islands/TravelCards";
+import ChatWidget from "../islands/ChatWidget";
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout title="Go Diego — Viajes Inolvidables | Agencia de Viajes">
+  <!-- Hero Section -->
+  <section class="relative bg-gradient-to-br from-primary to-primary-dark text-white py-24 md:py-32">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h1 class="text-4xl md:text-6xl font-bold mb-6">Viajes Inolvidables con Go Diego</h1>
+      <p class="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto">
+        Paquetes todo incluido, cruceros y viajes a la medida. Tu proxima aventura comienza aqui.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="#viajes" class="bg-white text-primary px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
+          Ver Viajes
+        </a>
+        <a href="#chat" class="bg-secondary text-dark px-8 py-3 rounded-lg font-semibold hover:bg-amber-400 transition">
+          Chatea con Nosotros
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services Section -->
+  <section id="servicios" class="bg-white py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-dark mb-4">Nuestros Servicios</h2>
+        <p class="text-gray-600 max-w-2xl mx-auto">Ofrecemos opciones para cada tipo de viajero</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Todo Incluido -->
+        <div class="text-center p-8 rounded-2xl bg-gradient-to-br from-blue-50 to-white border border-blue-100 hover:shadow-lg transition">
+          <div class="text-5xl mb-4">🏖️</div>
+          <h3 class="text-xl font-bold text-dark mb-3">Todo Incluido</h3>
+          <p class="text-gray-600">Vuelo, hotel, alimentos y actividades. Solo preocupate por disfrutar.</p>
+        </div>
+        <!-- Cruceros -->
+        <div class="text-center p-8 rounded-2xl bg-gradient-to-br from-cyan-50 to-white border border-cyan-100 hover:shadow-lg transition">
+          <div class="text-5xl mb-4">🚢</div>
+          <h3 class="text-xl font-bold text-dark mb-3">Cruceros</h3>
+          <p class="text-gray-600">Navega por los mejores destinos del Caribe y Mediterraneo.</p>
+        </div>
+        <!-- A la Medida -->
+        <div class="text-center p-8 rounded-2xl bg-gradient-to-br from-amber-50 to-white border border-amber-100 hover:shadow-lg transition">
+          <div class="text-5xl mb-4">🗺️</div>
+          <h3 class="text-xl font-bold text-dark mb-3">A la Medida</h3>
+          <p class="text-gray-600">Diseñamos tu viaje ideal segun tus gustos, presupuesto y fechas.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dynamic Travels Section -->
+  <TravelCards client:visible />
+
+  <!-- Testimonials Section -->
+  <section class="bg-gray-50 py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-dark mb-4">Lo que Dicen Nuestros Clientes</h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="bg-white p-6 rounded-xl shadow-sm">
+          <div class="flex text-amber-400 mb-3">★★★★★</div>
+          <p class="text-gray-600 mb-4">"Excelente experiencia, el hotel supero todas nuestras expectativas. Los ninos quedaron encantados."</p>
+          <p class="font-semibold text-sm text-dark">— Maria G.</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-sm">
+          <div class="flex text-amber-400 mb-3">★★★★★</div>
+          <p class="text-gray-600 mb-4">"Muy buena atencion por WhatsApp, respondieron todas mis dudas rapidamente."</p>
+          <p class="font-semibold text-sm text-dark">— Cliente satisfecho</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-sm">
+          <div class="flex text-amber-400 mb-3">★★★★☆</div>
+          <p class="text-gray-600 mb-4">"El crucero por el Caribe es espectacular, ojala agreguen mas fechas disponibles."</p>
+          <p class="font-semibold text-sm text-dark">— Viajero frecuente</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="bg-dark text-white py-16">
+    <div class="max-w-4xl mx-auto px-4 text-center">
+      <h2 class="text-3xl font-bold mb-4">Listo para tu proxima aventura?</h2>
+      <p class="text-gray-300 mb-8 text-lg">Chatea con nuestro asistente virtual o contactanos directamente por WhatsApp</p>
+      <a
+        href={`https://wa.me/${import.meta.env.PUBLIC_WHATSAPP_NUMBER?.replace("+", "") || "521XXXXXXXXXX"}?text=${encodeURIComponent("Hola, quiero informacion sobre sus viajes")}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center gap-2 bg-green-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-600 transition text-lg"
+      >
+        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+        </svg>
+        Contactar por WhatsApp
+      </a>
+    </div>
+  </section>
+
+  <!-- Chat Widget -->
+  <ChatWidget client:only="react" />
+
+  <!-- Schema.org JSON-LD -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "TravelAgency",
+    "name": "Go Diego",
+    "description": "Agencia de viajes con paquetes todo incluido, cruceros y viajes a la medida",
+    "url": import.meta.env.PUBLIC_SITE_URL || "https://godiego.com",
+    "telephone": import.meta.env.PUBLIC_WHATSAPP_NUMBER || "+521XXXXXXXXXX",
+    "areaServed": "MX",
+    "serviceType": ["Paquetes Todo Incluido", "Cruceros", "Viajes a la Medida"]
+  })} />
+</BaseLayout>

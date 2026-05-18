@@ -138,7 +138,7 @@
             },
             {
               "name": "phone",
-              "value": "={{ $json.phone }}"
+              "value": "={{ $('Transform Chat History').first().json.phone }}"
             },
             {
               "name": "history",
@@ -208,7 +208,7 @@
             },
             {
               "name": "clientQuestion",
-              "value": "={{ $json.escalation?.clientQuestion ?? $json.message }}"
+              "value": "={{ $json.escalation?.clientQuestion ?? $('Transform Chat History').first().json.message }}"
             },
             {
               "name": "context",
@@ -253,7 +253,7 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ { answer: $json.answer, escalate: true, escalation: $json.escalation, chat_id: $json.chat_id } }}",
+        "responseBody": "={{ { answer: $('Call Agent').first().json.answer, escalate: true, escalation: $('Call Agent').first().json.escalation, chatId: $('Call Agent').first().json.chatId, chat_id: $('Call Agent').first().json.chat_id, registeredEscalationId: $json.id } }}",
         "options": {}
       },
       "id": "send-escalation",

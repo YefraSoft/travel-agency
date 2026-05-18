@@ -1,0 +1,110 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const { slug } = Astro.params;
+const API_URL = import.meta.env.INTERNAL_API_URL || import.meta.env.PUBLIC_API_URL;
+
+interface TravelImage {
+  url: string;
+  altText: string;
+}
+
+interface TravelPackage {
+  name: string;
+  pricePerPerson: number;
+  currency: string;
+  availableSpots: number | null;
+}
+
+interface TravelDetail {
+  name: string;
+  destination: string;
+  description: string;
+  durationDays: number;
+  durationNights: number;
+  minPrice: number | null;
+  rating: number | null;
+  images: TravelImage[];
+  highlights: { label: string }[];
+  includes: { label: string; description?: string | null }[];
+  packages: TravelPackage[];
+}
+
+let travel: TravelDetail | null = null;
+
+if (API_URL && slug) {
+  try {
+    const response = await fetch(`${API_URL}/api/travels/${encodeURIComponent(slug)}`);
+    if (response.ok) {
+      travel = await response.json();
+    }
+  } catch {
+    travel = null;
+  }
+}
+
+if (!travel) {
+  return Astro.redirect("/viajes");
+}
+
+const coverImage = travel.images?.[0];
+---
+
+<BaseLayout title={`${travel.name} — Go Diego`} description={travel.description}>
+  <article class="bg-white">
+    <section class="relative bg-dark text-white">
+      {coverImage && (
+        <img src={coverImage.url} alt={coverImage.altText} class="absolute inset-0 w-full h-full object-cover opacity-40" />
+      )}
+      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <p class="text-blue-100 mb-3">{travel.destination}</p>
+        <h1 class="text-4xl md:text-5xl font-bold max-w-3xl">{travel.name}</h1>
+        <p class="mt-4 max-w-2xl text-lg text-gray-100">{travel.description}</p>
+        <div class="mt-6 flex flex-wrap gap-3 text-sm">
+          <span class="bg-white/15 px-4 py-2 rounded-full">{travel.durationDays} dias / {travel.durationNights} noches</span>
+          {travel.minPrice && <span class="bg-white/15 px-4 py-2 rounded-full">Desde ${travel.minPrice.toLocaleString("es-MX")} MXN</span>}
+          {travel.rating && <span class="bg-white/15 px-4 py-2 rounded-full">Rating {travel.rating.toFixed(1)}</span>}
+        </div>
+      </div>
+    </section>
+
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 grid lg:grid-cols-3 gap-8">
+      <div class="lg:col-span-2 space-y-8">
+        <div>
+          <h2 class="text-2xl font-bold mb-4">Highlights</h2>
+          <div class="grid sm:grid-cols-2 gap-3">
+            {travel.highlights.map((item) => <div class="border rounded-xl p-4 bg-gray-50">{item.label}</div>)}
+          </div>
+        </div>
+
+        <div>
+          <h2 class="text-2xl font-bold mb-4">Incluye</h2>
+          <ul class="space-y-3">
+            {travel.includes.map((item) => (
+              <li class="border-b pb-3">
+                <strong>{item.label}</strong>
+                {item.description && <p class="text-gray-600 text-sm">{item.description}</p>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <aside class="bg-gray-50 rounded-2xl p-6 h-fit sticky top-24">
+        <h2 class="text-xl font-bold mb-4">Paquetes</h2>
+        <div class="space-y-4">
+          {travel.packages.map((pkg) => (
+            <div class="bg-white rounded-xl p-4 shadow-sm">
+              <h3 class="font-semibold">{pkg.name}</h3>
+              <p class="text-primary font-bold mt-2">${pkg.pricePerPerson.toLocaleString("es-MX")} {pkg.currency}</p>
+              {pkg.availableSpots !== null && <p class="text-sm text-gray-500">{pkg.availableSpots} lugares disponibles</p>}
+            </div>
+          ))}
+        </div>
+        <a href="/#chat" class="mt-6 block text-center bg-primary text-white rounded-lg py-3 font-medium hover:bg-primary-dark transition">
+          Solicitar cotizacion
+        </a>
+      </aside>
+    </section>
+  </article>
+</BaseLayout>

@@ -1,9 +1,32 @@
-feat(infra): Fase 5 - n8n + Integración final
+feat(frontend): Fase 4 - Landing page + Dashboard admin en Astro
 
-- Agregar nodo "Transform Chat History" en workflow n8n: convierte HUMAN/AI → user/assistant
-- Agregar nodo "Register Escalation" en workflow n8n: POST /api/rag/escalations con X-API-Key
-- Crear import.sh script para importar workflows automaticamente en n8n
-- Crear container n8n-workflow-import que importa workflows via API al iniciar
-- Workflow whatsapp-agent.json actualizado con nuevos nodos y conexiones
-- Header X-API-Key ya configurado en Call Agent (Fase 2)
-- Phone ya configurado en body del Call Agent
+- Setup Astro 6 + Tailwind CSS v4 + React islands
+- BaseLayout.astro con Header responsive y Footer
+- Landing page (/) con SEO completo (meta, OG, Schema.org JSON-LD)
+- Secciones: Hero, Servicios, Viajes dinamicos, Testimonios, CTA
+- Isla TravelCards.tsx: consume GET /api/travels con filtros por tipo
+- Isla ChatWidget.tsx: chat con RAG via POST /api/rag/whatsapp/messages
+- Chat detecta escalacion y muestra boton WhatsApp wa.me/{numero}
+- Admin Dashboard (/admin/dashboard) con login simple
+- Isla AdminDashboard.tsx: lista escalaciones pendientes, chat history
+- Boton responder via WhatsApp Web y marcar como resuelta
+- Variables de entorno: PUBLIC_API_URL, PUBLIC_WHATSAPP_NUMBER, PUBLIC_ADMIN_PASSWORD
+
+docs(project): Fase 6 - Documentacion actualizada para v1.0
+
+- docs/db_schema.md: agregar tabla escalations con relaciones e indices
+- docs/db_schema.md: eliminar referencia a rag_chats, actualizar version a 3.0
+- docs/api_spec.md: especificacion completa de todos los endpoints REST
+- docs/api_spec.md: documentar autenticacion X-API-Key para servicios internos
+- docs/api_spec.md: endpoints de RAG, escalaciones, catalog y admin
+- README.md: stack real (Kotlin/Spring Boot, no Go/Fiber)
+- README.md: arquitectura de comunicacion interna con API_KEY
+- README.md: instrucciones de desarrollo, variables de entorno, usuarios de prueba
+
+fix(integration): alinear chat, dashboard y workflows n8n
+
+- Backend: devolver historial completo, chatId/escalacion y endpoints publicos faltantes
+- Agent: exigir API_KEY, evitar chat_id null y persistir mensajes solo en llamadas directas
+- Frontend: proteger dashboard con cookie httpOnly, corregir chatId y agregar detalle de viaje
+- n8n: importar workflows con CLI, conservar datos de escalacion y autenticar summarize
+- Infra: agregar frontend a Docker Compose y documentar variables faltantes

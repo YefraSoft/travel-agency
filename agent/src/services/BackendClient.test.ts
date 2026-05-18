@@ -53,7 +53,7 @@ describe("BackendClient", () => {
     it("returns customer for known phone", async () => {
       const c = await client.getCustomer("+5213312345678");
       expect(c).not.toBeNull();
-      expect(c!.name).toBe("María García López");
+      expect(c!.name).toBe("Maria Garcia Lopez");
       expect(c!.phone).toBe("+5213312345678");
     });
 

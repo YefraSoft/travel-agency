@@ -1,0 +1,76 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const API_URL = import.meta.env.INTERNAL_API_URL || import.meta.env.PUBLIC_API_URL;
+
+interface Travel {
+  id: number;
+  name: string;
+  slug: string;
+  destination: string;
+  type: string;
+  description: string;
+  minPrice: number | null;
+  coverImage?: { url: string; altText: string } | null;
+}
+
+let travels: Travel[] = [];
+
+if (API_URL) {
+  try {
+    const response = await fetch(`${API_URL}/api/travels`);
+    if (response.ok) {
+      travels = await response.json();
+    }
+  } catch {
+    travels = [];
+  }
+}
+---
+
+<BaseLayout title="Viajes — Go Diego" description="Catalogo de paquetes, cruceros y viajes a la medida de Go Diego.">
+  <section class="bg-gradient-to-br from-primary to-primary-dark text-white py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <p class="text-blue-100 mb-3">Catalogo</p>
+      <h1 class="text-4xl md:text-5xl font-bold">Todos los viajes</h1>
+      <p class="mt-4 max-w-2xl text-blue-50">Explora paquetes todo incluido, cruceros y opciones a la medida.</p>
+    </div>
+  </section>
+
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    {travels.length === 0 ? (
+      <div class="bg-white rounded-2xl shadow-sm p-8 text-center text-gray-500">
+        No hay viajes disponibles por ahora.
+      </div>
+    ) : (
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {travels.map((travel) => (
+          <article class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition">
+            <a href={`/viajes/${travel.slug}`} class="block h-48 bg-gradient-to-br from-primary to-primary-dark">
+              {travel.coverImage ? (
+                <img src={travel.coverImage.url} alt={travel.coverImage.altText} class="w-full h-full object-cover" />
+              ) : (
+                <div class="w-full h-full flex items-center justify-center text-white text-5xl">✈️</div>
+              )}
+            </a>
+            <div class="p-6">
+              <p class="text-sm text-gray-500 mb-2">{travel.destination}</p>
+              <h2 class="text-xl font-bold mb-3">
+                <a href={`/viajes/${travel.slug}`} class="hover:text-primary transition">{travel.name}</a>
+              </h2>
+              <p class="text-gray-600 text-sm line-clamp-3 mb-5">{travel.description}</p>
+              <div class="flex items-center justify-between gap-4">
+                <p class="text-primary font-bold">
+                  {travel.minPrice ? `$${travel.minPrice.toLocaleString("es-MX")} MXN` : "Cotizar"}
+                </p>
+                <a href={`/viajes/${travel.slug}`} class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark transition">
+                  Ver detalles
+                </a>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    )}
+  </section>
+</BaseLayout>

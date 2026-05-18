@@ -40,24 +40,4 @@ apiRouter.get("/health", async (_req: Request, res: Response) => {
   res.json(health);
 });
 
-/** GET /api/translate — demo LLM call */
-apiRouter.get("/translate", async (_req: Request, res: Response) => {
-  try {
-    const result = await llmService.generate([
-      new SystemMessage("You are a helpful assistant that translates English to French. Translate the user sentence."),
-      new HumanMessage("I love programming."),
-    ]);
-    res.json({ success: true, result });
-  } catch (error) {
-    console.error("LLM error:", error);
-    res.status(500).json({ success: false, error: String(error) });
-  }
-});
-
-/** POST /api/users — placeholder */
-apiRouter.post("/users", (req: Request, res: Response) => {
-  const user = req.body;
-  res.json({ success: true, data: user });
-});
-
 export { apiRouter };

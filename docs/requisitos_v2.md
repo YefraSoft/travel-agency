@@ -198,11 +198,11 @@ Sistema de gestión para agencia de viajes que opera con paquetes todo incluido,
 
 | Área | Decisión |
 |---|---|
-| Frontend | Astro (SSG/SSR) |
-| Backend | Go + Fiber |
-| Base de datos | PostgreSQL con GORM |
+| Frontend | Astro (SSG/SSR) + React islands |
+| Backend | Spring Boot + Kotlin + JPA/Flyway |
+| Base de datos | PostgreSQL |
 | Cache / Colas | Redis |
-| RAG | LlamaIndex + ChromaDB + Ollama |
+| RAG | TypeScript + Express + Gemini + ChromaDB |
 | Automatización | n8n |
 | Infraestructura | Docker + VPS (Hetzner o Fly.io) |
 | CI/CD | GitHub Actions |

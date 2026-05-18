@@ -15,11 +15,14 @@ class PublicTravelController(private val travelService: TravelService) {
     @Operation(summary = "List active travels for the public catalog")
     fun list(@RequestParam(required = false) type: TravelType?): List<TravelResponse> = travelService.publicList(type)
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     fun get(@PathVariable id: Int): TravelResponse = travelService.getById(id)
 
     @GetMapping("/slug/{slug}")
     fun getBySlug(@PathVariable slug: String): TravelResponse = travelService.getBySlug(slug)
+
+    @GetMapping("/{slug}")
+    fun getBySlugPath(@PathVariable slug: String): TravelResponse = travelService.getBySlug(slug)
 }
 
 @RestController
@@ -40,4 +43,3 @@ class AdminTravelController(private val travelService: TravelService) {
     fun status(@PathVariable id: Int, @RequestBody request: TravelStatusRequest): TravelResponse =
         travelService.changeStatus(id, request.status)
 }
-

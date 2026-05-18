@@ -18,24 +18,24 @@ WhatsApp → n8n (Redis buffer 60s) → POST /api/chat → Agent TS (Gemini + Ch
 ### Componentes
 | Servicio | Tech | Puerto | Estado |
 |----------|------|--------|--------|
-| Backend | Spring Boot 4.0.6 + Kotlin + JPA + Flyway | 8080 | ✅ 52 archivos, 25 endpoints |
-| Agent | TypeScript + Express + Gemini + ChromaDB | 3000 (host: 3002) | ✅ 21 archivos, pipeline completo |
-| n8n | Workflow automation | 5678 | ⚠️ Workflows definidos, no importados |
-| Frontend | Astro + React (islas) | 4321 | ❌ Esqueleto vacío |
-| Postgres | 16-alpine | 5432 | ✅ Con ENUMs (V1) |
+| Backend | Spring Boot 4.0.6 + Kotlin + JPA + Flyway | 8080 | ✅ 55 archivos, 29 endpoints |
+| Agent | TypeScript + Express + Gemini + ChromaDB | 3000 (host: 3002) | ✅ 22 archivos, pipeline completo + API_KEY |
+| n8n | Workflow automation | 5678 | ✅ Workflows importados automaticamente |
+| Frontend | Astro 6 + Tailwind v4 + React 19 (islas) | 4321 | ✅ Landing + Dashboard + ChatWidget |
+| Postgres | 16-alpine | 5432 | ✅ VARCHAR (V1 consolidada) |
 | Redis | 7-alpine | 6379 | ✅ Cache de chats |
 
-### Problemas Detectados
-1. Dos RAGs: `rag/` (Python/Ollama) y `agent/` (TS/Gemini). Solo `agent/` está en Docker
-2. Flyway V1 usa ENUMs, pero entities usan VARCHAR. Migraciones `infra/sql/002_remove_enums.sql` no están en path de Flyway
-3. Agent no tiene API_KEY — todos los endpoints abiertos
-4. n8n no envía API_KEY al llamar al agent
-5. Backend no tiene endpoint de escalaciones — el dashboard no tiene de dónde leer
-6. `chat_id` siempre es `null` en respuestas del agent
-7. Model name duplicado: `gemini-gemini-2.5-flash`
-8. pom.xml dice Java 23, Dockerfile usa JDK 26
-9. API key real en `.env` — riesgo de seguridad
-10. Frontend vacío — sin landing, sin dashboard, sin Tailwind
+### Problemas Resueltos
+1. ✅ Dos RAGs → Python RAG movido a `deprecated/rag-python/`
+2. ✅ Flyway ENUMs → V1__full_schema.sql con VARCHAR consolidado
+3. ✅ Agent sin API_KEY → Middleware AuthMiddleware.ts implementado
+4. ✅ n8n sin API_KEY → Header X-API-Key agregado al workflow
+5. ✅ Backend sin escalaciones → Entity + Controller + Service creados
+6. ✅ chat_id null → Agent ahora crea/obtiene chat del backend
+7. ✅ Model name duplicado → Fix en LlmService.ts
+8. ✅ Java version → pom.xml y Dockerfile alineados a Java 24 (Kotlin max)
+9. ✅ API key real en .env → Reemplazada con placeholder
+10. ✅ Frontend vacío → Landing + Dashboard + ChatWidget completos
 
 ---
 

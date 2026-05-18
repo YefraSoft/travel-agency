@@ -229,15 +229,15 @@ data class RagQuoteRequest(
 
 data class ChatCreateRequest(
     @field:NotBlank val phone: String,
-    val customerId: Int?,
-    val attendedBy: UserRole,
-    val closedBy: UserRole?,
-    val chatHistory: List<ChatMessage>,
-    val contextSummary: String?
+    val customerId: Int? = null,
+    val attendedBy: UserRole = UserRole.IA_AGENT,
+    val closedBy: UserRole? = null,
+    val chatHistory: List<ChatMessage> = emptyList(),
+    val contextSummary: String? = null
 )
 
 data class ChatMessageRequest(
-    val interaction: MutableList<ChatMessage>
+    val interaction: List<ChatMessage>
 )
 
 data class ChatMessageResponse(
@@ -260,6 +260,9 @@ data class ChatResponse(
     val id: Int,
     val phone: String,
     val customerId: Int?,
+    val attendedBy: UserRole,
+    val closedBy: UserRole?,
+    val chatHistory: List<ChatMessage>,
     val contextSummary: String?,
     val closedAt: LocalDateTime?
 )
@@ -273,7 +276,17 @@ data class RagAssistantResponse(
     val answer: String,
     val sources: List<String> = emptyList(),
     val model: String,
-    @JsonProperty("chat_id") val chatId: Int? = null
+    val chatId: Int? = null,
+    @JsonProperty("chat_id") val legacyChatId: Int? = chatId,
+    val escalate: Boolean = false,
+    val escalation: EscalationDetailResponse? = null
+)
+
+data class EscalationDetailResponse(
+    val reason: String,
+    val clientQuestion: String,
+    val context: String? = null,
+    val suggestedAction: String? = null
 )
 
 data class PaymentAlertResponse(

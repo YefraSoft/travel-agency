@@ -1,4 +1,5 @@
 import { EscalationSchema, type EscalationResult } from "./schemas";
+import { LLM_CONFIG } from "../config/AppConfig";
 
 const ESCALATION_SYSTEM_PROMPT = `Eres un asistente de agencia de viajes. Analiza la pregunta del cliente y determina si necesita ser escalado a un agente humano.
 
@@ -28,9 +29,9 @@ export class EscalationTool {
     const { HumanMessage, SystemMessage } = await import("@langchain/core/messages");
 
     const llm = new ChatGoogle({
-      model: "gemini-2.5-flash",
+      model: LLM_CONFIG.model,
       temperature: 0,
-      maxRetries: 1,
+      maxRetries: LLM_CONFIG.maxRetries,
     });
 
     const messages = [
@@ -44,11 +45,19 @@ export class EscalationTool {
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (!jsonMatch) return null;
 
-    const parsed = JSON.parse(jsonMatch[0]);
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(jsonMatch[0]);
+    } catch {
+      return null;
+    }
 
-    if (Object.keys(parsed).length === 0) return null;
+    if (typeof parsed !== "object" || parsed === null || Object.keys(parsed).length === 0) {
+      return null;
+    }
 
-    return EscalationSchema.parse(parsed);
+    const result = EscalationSchema.safeParse(parsed);
+    return result.success ? result.data : null;
   }
 }
 

@@ -1,156 +1,325 @@
 package com.api.travel_api.rag
 
 import com.api.travel_api.api.*
-import com.api.travel_api.booking.BookingService
 import com.api.travel_api.chat.ChatContextCacheService
 import com.api.travel_api.chat.ChatRepository
 import com.api.travel_api.common.NotFoundException
-import com.api.travel_api.customer.CustomerService
+import com.api.travel_api.customer.CustomerRepository
 import com.api.travel_api.customer.toResponse
+import com.api.travel_api.escalation.EscalationService
 import com.api.travel_api.model.entities.Chat
-import com.api.travel_api.model.enums.CustomerOrigin
+import com.api.travel_api.model.enums.MessageType
 import com.api.travel_api.model.enums.UserRole
-import com.api.travel_api.travel.TravelRepository
-import com.api.travel_api.travel.minCurrency
-import com.api.travel_api.travel.toResponse
+import com.api.travel_api.travel.TravelService
+import com.fasterxml.jackson.databind.ObjectMapper
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.client.RestTemplate
 import java.time.LocalDateTime
 
 @Service
 class RagService(
-    private val travelRepository: TravelRepository,
-    private val customerService: CustomerService,
-    private val bookingService: BookingService,
     private val chatRepository: ChatRepository,
-    private val chatContextCacheService: ChatContextCacheService
+    private val chatContextCacheService: ChatContextCacheService,
+    private val travelService: TravelService,
+    private val customerRepository: CustomerRepository,
+    private val escalationService: EscalationService,
+    @Value("\${rag.service.url:http://localhost:3000}") private val agentUrl: String,
+    @Value("\${rag.api.key:}") private val apiKey: String
 ) {
+    private val logger = LoggerFactory.getLogger(RagService::class.java)
+    private val restTemplate = RestTemplate()
+    private val objectMapper = ObjectMapper().findAndRegisterModules()
 
-    @Transactional(readOnly = true)
-    fun travels(): List<RagTravelResponse> =
-        travelRepository.findAll()
-            .filter { it.status.name == "ACTIVE" }
-            .map {
-                val activePackages = it.packages.filter { pkg -> pkg.active }
-                RagTravelResponse(
-                    id = it.id!!,
-                    name = it.name,
-                    slug = it.slug,
-                    type = it.type,
-                    destination = it.destination,
-                    minPrice = activePackages.minOfOrNull { pkg -> pkg.pricePerPerson },
-                    currency = it.minCurrency(),
-                    availablePackages = activePackages.map { pkg -> pkg.toResponse() }
-                )
-            }
+    data class AgentChatRequest(
+        val message: String,
+        val phone: String,
+        val persist: Boolean = false,
+        val history: List<AgentMessage> = emptyList()
+    )
 
-    @Transactional(readOnly = true)
-    fun customerByPhone(phone: String): CustomerResponse =
-        customerService.findByPhoneOrNull(phone)?.toResponse()
-            ?: throw NotFoundException("Customer not found")
+    data class AgentMessage(
+        val role: String,
+        val content: String
+    )
+
+    data class AgentChatResponse(
+        val answer: String,
+        val sources: List<String> = emptyList(),
+        val model: String = "",
+        val chat_id: Int? = null,
+        val escalate: Boolean = false,
+        val escalation: EscalationDetail? = null
+    )
+
+    data class EscalationDetail(
+        val reason: String,
+        val clientQuestion: String,
+        val context: String?,
+        val suggestedAction: String?
+    )
 
     @Transactional
-    fun quote(request: RagQuoteRequest): BookingResponse {
-        val customer = customerService.findByPhoneOrNull(request.phone)
-            ?: customerService.create(
-                CustomerRequest(
-                    name = request.name,
-                    email = request.email,
-                    phone = request.phone,
-                    origin = CustomerOrigin.WHATSAPP
-                )
-            ).let { customerService.findEntity(it.id) }
+    fun processMessage(phone: String, message: String): RagAssistantResponse {
+        logger.info("Processing RAG message for phoneSuffix={}", phone.takeLast(4))
 
-        return bookingService.create(
-            BookingRequest(
-                travelId = request.travelId,
-                packageId = request.packageId,
-                customerId = customer.id,
-                customerPhone = request.phone,
-                priceOfSale = request.priceOfSale,
-                notes = request.notes
+        val chat = getOrCreateChat(phone)
+
+        val history = chatContextCacheService.get(phone)?.chatHistory
+            ?: chat.chatHistory
+
+        val agentHistory = history.map { msg ->
+            AgentMessage(
+                role = if (msg.type == MessageType.HUMAN) "user" else "assistant",
+                content = msg.content
             )
+        }
+
+        val agentRequest = AgentChatRequest(
+            message = message,
+            phone = phone,
+            persist = false,
+            history = agentHistory
         )
-    }
 
-    @Transactional
-    fun createChat(request: ChatCreateRequest): ChatResponse {
-        val customer = request.customerId?.let { customerService.findEntity(it) }
-            ?: customerService.findByPhoneOrNull(request.phone)
-
-        val chat = chatRepository.save(
-            Chat(
-                customer = customer,
-                phone = request.phone,
-                attendedBy = request.attendedBy,
-                closedBy = request.closedBy,
-                chatHistory = request.chatHistory,
-                contextSummary = request.contextSummary,
-            )
-        )
-        chatContextCacheService.put(chat)
-        return chat.toResponse()
-    }
-
-    @Transactional
-    fun addMessage(chatId: Int, request: ChatMessageRequest): ChatResponse {
-        val chat = chatRepository.findById(chatId)
-            .orElseThrow { NotFoundException("Chat not found") }
-
-        val history = chat.chatHistory.toMutableList()
-        history.addAll(request.interaction)
-        chat.chatHistory = history
-
-        val saved = chatRepository.save(chat)
-        chatContextCacheService.append(saved, request.interaction)
-        return saved.toResponse()
-    }
-
-    @Transactional
-    fun closeChat(chatId: Int, request: ChatCloseRequest): ChatResponse {
-        val chat = chatRepository.findById(chatId)
-            .orElseThrow { NotFoundException("Chat not found") }
-
-        return closeChat(chat, request)
-    }
-
-    @Transactional
-    fun closeActiveChat(phone: String, request: ChatCloseRequest): ChatResponse {
-        val chat = chatRepository.findFirstByPhoneAndClosedAtIsNullOrderByCreatedAtDesc(phone)
-            ?: throw NotFoundException("Chat not found")
-
-        return closeChat(chat, request)
-    }
-
-    private fun closeChat(chat: Chat, request: ChatCloseRequest): ChatResponse {
-        chat.closedBy = UserRole.IA_AGENT
-        chat.closedAt = LocalDateTime.now()
-        chat.contextSummary = request.contextSummary ?: generateClosingSummary(chat)
-
-        val saved = chatRepository.save(chat)
-        chatContextCacheService.delete(saved.phone)
-        return saved.toResponse()
-    }
-
-    private fun generateClosingSummary(chat: Chat): String {
-        val totalMessages = chat.chatHistory.size
-        val lastHumanMessage = chat.chatHistory.lastOrNull { it.type.name == "HUMAN" }?.content
-        return buildString {
-            append("Conversacion cerrada con ")
-            append(totalMessages)
-            append(" mensaje(s).")
-            if (!lastHumanMessage.isNullOrBlank()) {
-                append(" Ultima solicitud del cliente: ")
-                append(lastHumanMessage.take(300))
+        val headers = HttpHeaders().apply {
+            contentType = MediaType.APPLICATION_JSON
+            if (apiKey.isNotBlank()) {
+                set("X-API-Key", apiKey)
             }
         }
+
+        val httpEntity = HttpEntity(agentRequest, headers)
+
+        val response: ResponseEntity<AgentChatResponse> = restTemplate.postForEntity(
+            "$agentUrl/api/chat",
+            httpEntity,
+            AgentChatResponse::class.java
+        )
+
+        val agentResponse = response.body ?: throw RuntimeException("Empty response from agent")
+
+        val newMessages = listOf(
+            ChatMessage(MessageType.HUMAN, message),
+            ChatMessage(MessageType.AI, agentResponse.answer)
+        )
+
+        chatContextCacheService.append(chat, newMessages)
+
+        chat.chatHistory = chat.chatHistory + newMessages
+        chatRepository.save(chat)
+
+        if (agentResponse.escalate && agentResponse.escalation != null) {
+            logger.info(
+                "Escalation triggered for phoneSuffix={}, reason={}",
+                phone.takeLast(4),
+                agentResponse.escalation.reason
+            )
+            escalationService.create(
+                EscalationRequest(
+                    chatId = chat.id,
+                    phone = phone,
+                    reason = agentResponse.escalation.reason,
+                    clientQuestion = agentResponse.escalation.clientQuestion,
+                    context = agentResponse.escalation.context,
+                    suggestedAction = agentResponse.escalation.suggestedAction
+                )
+            )
+        }
+
+        return RagAssistantResponse(
+            answer = agentResponse.answer,
+            sources = agentResponse.sources,
+            model = agentResponse.model,
+            chatId = agentResponse.chat_id ?: chat.id,
+            legacyChatId = agentResponse.chat_id ?: chat.id,
+            escalate = agentResponse.escalate,
+            escalation = agentResponse.escalation?.let {
+                EscalationDetailResponse(
+                    reason = it.reason,
+                    clientQuestion = it.clientQuestion,
+                    context = it.context,
+                    suggestedAction = it.suggestedAction
+                )
+            }
+        )
+    }
+
+    fun getRagTravels(): List<RagTravelResponse> {
+        val travels = travelService.publicList(null)
+        return travels.map { travel ->
+            RagTravelResponse(
+                id = travel.id,
+                name = travel.name,
+                slug = travel.slug,
+                type = travel.type,
+                destination = travel.destination,
+                minPrice = travel.minPrice,
+                currency = travel.packages.firstOrNull()?.currency,
+                availablePackages = travel.packages.filter { it.active }
+            )
+        }
+    }
+
+    fun getCustomerByPhone(phone: String): CustomerResponse? {
+        return customerRepository.findByPhone(phone)?.toResponse()
+    }
+
+    @Transactional(readOnly = true)
+    fun getChatByPhone(phone: String): ChatResponse {
+        val cached = chatContextCacheService.get(phone)
+        if (cached != null) {
+            return ChatResponse(
+                id = cached.id,
+                phone = cached.phone,
+                customerId = cached.customerId,
+                attendedBy = cached.attendedBy,
+                closedBy = cached.closedBy,
+                chatHistory = cached.chatHistory,
+                contextSummary = cached.contextSummary,
+                closedAt = null
+            )
+        }
+
+        val chat = chatRepository.findFirstByPhoneAndClosedAtIsNullOrderByCreatedAtDesc(phone)
+            ?: throw NotFoundException("Chat not found for phone: $phone")
+
+        return ChatResponse(
+            id = chat.id!!,
+            phone = chat.phone,
+            customerId = chat.customer?.id,
+            attendedBy = chat.attendedBy,
+            closedBy = chat.closedBy,
+            chatHistory = chat.chatHistory,
+            contextSummary = chat.contextSummary,
+            closedAt = chat.closedAt
+        )
+    }
+
+    @Transactional
+    fun createChat(phone: String, attendedBy: UserRole = UserRole.IA_AGENT): ChatResponse {
+        val customer = customerRepository.findByPhone(phone)
+
+        val chat = Chat(
+            phone = phone,
+            customer = customer,
+            attendedBy = attendedBy,
+            chatHistory = emptyList()
+        )
+
+        val saved = chatRepository.save(chat)
+        chatContextCacheService.put(chat)
+
+        return ChatResponse(
+            id = saved.id!!,
+            phone = saved.phone,
+            customerId = saved.customer?.id,
+            attendedBy = saved.attendedBy,
+            closedBy = saved.closedBy,
+            chatHistory = saved.chatHistory,
+            contextSummary = saved.contextSummary,
+            closedAt = saved.closedAt
+        )
+    }
+
+    @Transactional
+    fun addMessage(chatId: Int, messages: List<ChatMessage>): ChatResponse {
+        val chat = chatRepository.findById(chatId)
+            .orElseThrow { NotFoundException("Chat not found with id: $chatId") }
+
+        chat.chatHistory = chat.chatHistory + messages
+        chatRepository.save(chat)
+        chatContextCacheService.append(chat, messages)
+
+        return ChatResponse(
+            id = chat.id!!,
+            phone = chat.phone,
+            customerId = chat.customer?.id,
+            attendedBy = chat.attendedBy,
+            closedBy = chat.closedBy,
+            chatHistory = chat.chatHistory,
+            contextSummary = chat.contextSummary,
+            closedAt = chat.closedAt
+        )
+    }
+
+    @Transactional
+    fun closeChat(phone: String, contextSummary: String?): ChatResponse {
+        val chat = chatRepository.findFirstByPhoneAndClosedAtIsNullOrderByCreatedAtDesc(phone)
+            ?: throw NotFoundException("No active chat found for phone: $phone")
+
+        chat.closedAt = LocalDateTime.now()
+        chat.closedBy = UserRole.IA_AGENT
+        if (contextSummary != null) {
+            chat.contextSummary = contextSummary
+        }
+        chatRepository.save(chat)
+        chatContextCacheService.delete(phone)
+
+        return ChatResponse(
+            id = chat.id!!,
+            phone = chat.phone,
+            customerId = chat.customer?.id,
+            attendedBy = chat.attendedBy,
+            closedBy = chat.closedBy,
+            chatHistory = chat.chatHistory,
+            contextSummary = chat.contextSummary,
+            closedAt = chat.closedAt
+        )
+    }
+
+    @Transactional(readOnly = true)
+    fun getActiveChats(): List<ChatMessageResponse> {
+        return chatRepository.findByClosedAtIsNullOrderByCreatedAtDesc()
+            .map { it.toMessageResponse() }
+    }
+
+    private fun Chat.toMessageResponse() = ChatMessageResponse(
+        id = id!!,
+        customerId = customer?.id,
+        attendedBy = attendedBy,
+        closedBy = closedBy,
+        chatHistory = chatHistory,
+        contextSummary = contextSummary
+    )
+
+    private fun getOrCreateChat(phone: String): Chat {
+        val cached = chatContextCacheService.get(phone)
+        if (cached != null) {
+            val cachedChat = chatRepository.findById(cached.id)
+            if (cachedChat.isPresent) {
+                return cachedChat.get()
+            }
+
+            logger.warn(
+                "Discarding stale cached chat id={} for phoneSuffix={}",
+                cached.id,
+                phone.takeLast(4)
+            )
+            chatContextCacheService.delete(phone)
+        }
+
+        val existing = chatRepository.findFirstByPhoneAndClosedAtIsNullOrderByCreatedAtDesc(phone)
+        if (existing != null) {
+            chatContextCacheService.put(existing)
+            return existing
+        }
+
+        val customer = customerRepository.findByPhone(phone)
+        val chat = Chat(
+            phone = phone,
+            customer = customer,
+            attendedBy = UserRole.IA_AGENT,
+            chatHistory = emptyList()
+        )
+        val saved = chatRepository.save(chat)
+        chatContextCacheService.put(saved)
+        return saved
     }
 }
-
-fun Chat.toResponse() = ChatResponse(
-    id = id!!,
-    phone = phone,
-    customerId = customer?.id,
-    contextSummary = contextSummary,
-    closedAt = closedAt
-)

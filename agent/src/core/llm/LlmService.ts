@@ -19,7 +19,7 @@ export class LlmService {
       this.gemini = new ChatGoogle({
         model: LLM_CONFIG.model,
         temperature: LLM_CONFIG.temperature,
-        maxRetries: 1,
+        maxRetries: LLM_CONFIG.maxRetries,
         apiKey: process.env.GOOGLE_API_KEY,
       });
     }
